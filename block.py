@@ -1,21 +1,35 @@
 import pygame
 
-class Wave():
-    def __init__(self, center, velocity, clockticks, sound_interval):
-        #sound_interval = (sound_start,sound_end)
-        self.radius = -velocity*clockticks*sound_interval[0] if sound_interval[0] > 0 else 0
-        self.x = center[0]
-        self.y = center[1]
-        self.thicc = int(clockticks*(sound_interval[1]-sound_interval[0]))
-        self.velocity = velocity
-        self.sound_interval = sound_interval
-        
-    def update(self):
-        self.radius += self.velocity
+class Block():
+    def __init__(self, pos, block_type):
+        self.x = pos[0]
+        self.y = pos[1]
+        self.block_type = block_type
+        self.broken = False
 
-    def draw(self,mask):
-        pygame.draw.circle(mask,(0,0,255),(self.x,self.y),self.radius,self.thicc)
+    def breakBlock(self):
+        self.broken = True
 
-    def checkLimits(self,WIDTH,HEIGHT):
-        limits = [(0,0),(WIDTH,0),(0,HEIGHT),(WIDTH,HEIGHT)]
-        return all((abs(limit[0]-self.x) + abs(limit[1]-self.y)) < self.radius for limit in limits)
+class Chunk():
+    def __init__(self, pos, blocks, pre_requisits, post_requisits, tunnel=False, player_height=128):
+        self.x = pos[0]
+        self.y = pos[1]
+        self.blocks = blocks
+        self.tunnel = tunnel
+        self.pre_requisits = pre_requisits
+        self.post_requisits = post_requisits
+        self.player_height = player_height
+
+    def update(self,x_movement):
+        self.x -= x_movement
+        for block in self.blocks:
+            block.x -= x_movement
+
+    def can_be_generated(self,post_requisits):
+        for possible in self.pre_requisits:
+            low_requisit = possible[0] + self.player_height
+            top_requisit = possible[1] - self.player_height
+            for available in post_requisits:
+                if(available[0] < top_requisit and available[1] > low_requisit):
+                    return True
+        return False
