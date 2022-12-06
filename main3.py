@@ -55,8 +55,8 @@ if __name__ == "__main__":
     player_sprite = PlayerSprite(player, SCALE)
 
     all_sprites = sprite.Group()
-    all_sprites.add(player_sprite)
     all_sprites.add(sprite_object)
+    all_sprites.add(player_sprite)
 
     clock = pygame.time.Clock()
 
@@ -112,7 +112,7 @@ if __name__ == "__main__":
             menu.mainloop(screen)
         else:
             # create cover surface
-            #mask.fill(0)
+            mask.fill(0)
             if (random.randint(1, 144) == 1):
                 waves.append(Wave(
                     [random.randint(0, 800), random.randint(0, 600)],
