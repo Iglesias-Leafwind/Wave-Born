@@ -1,6 +1,5 @@
 import pygame
 
-from block import block
 from spritesheet import SpriteSheet
 
 CELL_SIZE = 64
@@ -53,8 +52,8 @@ class FoodSprite(pygame.sprite.Sprite):
         )
 
 
-class SnakeSprite(pygame.sprite.Sprite):
-    def __init__(self, snake: Snake, WIDTH, HEIGHT, SCALE):
+class UserSprite(pygame.sprite.Sprite):
+    def __init__(self, user: User, WIDTH, HEIGHT, SCALE):
         super().__init__()
 
         SNAKE_SPRITESHEET = SpriteSheet("snake-graphics.png")
