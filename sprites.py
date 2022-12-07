@@ -12,6 +12,8 @@ SPRITE_WIDTH = 80
 SPRITE_HEIGHT = 72
 ACC = 0.0975
 
+class BlockSprite(pygame.sprite.Sprite):
+    
 class PlayerSprite(pygame.sprite.Sprite):
     __player_sprite = None
 

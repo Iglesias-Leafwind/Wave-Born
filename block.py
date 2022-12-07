@@ -25,6 +25,9 @@ class Chunk():
         self.post_requisits = post_requisits
         self.player_height = player_height
 
+    def load_chunk(json_file_path):
+        return Chunk()
+
     def update(self, x_movement):
         self.x -= x_movement
         for block in self.blocks:
@@ -38,3 +41,29 @@ class Chunk():
                 if available[0] < top_requisit and available[1] > low_requisit:
                     return True
         return False
+
+if __name__ == "__main__":
+    from pygame import *
+    from pygame.sprite import *
+    WIDTH = 1024
+    HEIGHT = 640
+    SCALE = 32
+    blocks_x = WIDTH/SCALE
+    blocks_y = HEIGHT/SCALE
+
+    print(blocks_x,blocks_y)
+    # init pygame
+    pygame.init()
+
+    # init screen
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    screen.fill((0, 0, 0))
+
+    all_sprites = sprite.Group()
+    clock = pygame.time.Clock()
+    
+while 1:
+        clock.tick(144)
+            
+        pygame.display.flip()
+
