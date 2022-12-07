@@ -42,8 +42,8 @@ if __name__ == "__main__":
     SCALE = 32
     mixer.init()
     music.set_volume(0.5)
-    music.load("sources/sounds/breeze_bay.mp3")
-    music.play(loops=-1)
+    #music.load("sources/sounds/breeze_bay.mp3")
+    #music.play(loops=-1)
 
     # init pygame
     pygame.init()

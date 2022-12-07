@@ -2,10 +2,11 @@ from pygame import mixer
 from pygame.mixer import *
 
 
-class Sound:
+class Sound(mixer.Sound):
     def __init__(self, file):
-        self.sound = mixer.Sound(file)
+        super(Sound, self).__init__(file)
 
     def play(self, **kwargs):
-        self.sound.set_volume(music.get_volume())
-        self.sound.play(**kwargs)
+        self.stop()
+        self.set_volume(music.get_volume())
+        super(Sound, self).play(**kwargs)
