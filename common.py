@@ -1,8 +1,6 @@
 from enum import Enum
 from datetime import datetime
 
-EVENT_FOOD_EATEN = "event_food_eaten"
-
 
 class Directions(Enum):
     UP = (0, -1)
