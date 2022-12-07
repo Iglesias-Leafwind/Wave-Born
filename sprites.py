@@ -13,10 +13,18 @@ ACC = 0.0975
 
 
 class BlockSprite(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, block, SCALE):
         Sprite.__init__(self)
+        BLOCK_SPRITESHEET = SpriteSheet("sources/imgs/blocks.png")
 
-
+        self.block = block
+        block_type = block.block_type
+        self.image = BLOCK_SPRITESHEET.image_at((SCALE*block_type,0,SCALE,SCALE),-1)
+        
+        self.rect = self.image.get_rect()
+        self.rect.x = block.x
+        self.rect.y = block.y
+    
 class PlayerSprite(pygame.sprite.Sprite):
     __player_sprite = None
 
@@ -34,7 +42,7 @@ class PlayerSprite(pygame.sprite.Sprite):
 
         player_image_rect = (0, 0, SPRITE_WIDTH, SPRITE_HEIGHT)
 
-        self.stop_image = PLAYER_SPRITESHEET.image_at(player_image_rect, -1)
+        self.stop_image = PLAYER_SPRITESHEET.image_at(player_image_rect, -1).convert_alpha()
         self.stop_image = pygame.transform.scale(self.stop_image, (SCALE, SCALE))
 
         self.left_move_images = ((0, 2), (1, 2), (2, 2), (3, 2))
