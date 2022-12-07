@@ -13,7 +13,9 @@ SPRITE_HEIGHT = 72
 ACC = 0.0975
 
 class BlockSprite(pygame.sprite.Sprite):
-    
+    def __init__(self):
+        Sprite.__init__(self)
+        
 class PlayerSprite(pygame.sprite.Sprite):
     __player_sprite = None
 
@@ -24,8 +26,9 @@ class PlayerSprite(pygame.sprite.Sprite):
 
         self.player = player
         self.SCALE = SCALE
-
-        self.land_sound = Sound("sources/sounds/landd.mp3")
+        import os
+        print(os.listdir("sources/sounds/"))
+        self.land_sound = Sound("sources/sounds/land2.mp3")
         self.jump_sound = Sound("sources/sounds/jump.mp3")
 
         player_image_rect = (0, 0, SPRITE_WIDTH, SPRITE_HEIGHT)
