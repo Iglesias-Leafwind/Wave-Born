@@ -19,7 +19,7 @@ class Menu(pygame_menu.Menu):
                               onchange=self.set_volume)
         self.show = False
         self.difficulty = 1
-        self.volume = 5
+        self.volume_ = 5
         self.exit = False
         
     def start_the_game(self):
@@ -35,8 +35,12 @@ class Menu(pygame_menu.Menu):
         self.difficulty = args[1]
 
     def set_volume(self, v):
-        self.volume = int(v)
-        music.set_volume(self.volume/100)
+        self.volume_ = int(v)
+        music.set_volume(self.volume)
+
+    @property
+    def volume(self):
+        return self.volume_ / 100
 
     def set_show(self):
         self.show = True

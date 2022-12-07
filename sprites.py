@@ -1,9 +1,9 @@
-from enum import Enum
 
 import pygame
 from pygame.sprite import Sprite
 
 from common import Directions
+from sound import Sound
 from spritesheet import SpriteSheet
 
 CELL_SIZE = 64
@@ -18,13 +18,17 @@ class PlayerSprite(pygame.sprite.Sprite):
     def __init__(self, player, SCALE):
         Sprite.__init__(self)
 
-        PLAYER_SPRITESHEET = SpriteSheet("player.png")
+        PLAYER_SPRITESHEET = SpriteSheet("sources/imgs/player.png")
 
         self.player = player
         self.SCALE = SCALE
 
+        self.land_sound = Sound("sources/sounds/landd.mp3")
+        self.jump_sound = Sound("sources/sounds/jump.mp3")
+
         player_image_rect = (0, 0, SPRITE_WIDTH, SPRITE_HEIGHT)
-        
+
+
         self.stop_image = PLAYER_SPRITESHEET.image_at(player_image_rect, -1)
         self.stop_image = pygame.transform.scale(self.stop_image, (SCALE, SCALE))
 
@@ -91,6 +95,7 @@ class PlayerSprite(pygame.sprite.Sprite):
                 if self.jump_count < self.jump_limit and not self.falling and self.jump_again:
                     self.jumping = True
                     self.jump_again = False
+                    self.jump_sound.play()
 
             if self.player.direction != Directions.UP:
                 x, y = self.player.direction
@@ -116,6 +121,7 @@ class PlayerSprite(pygame.sprite.Sprite):
             self.jump_count -= 0.5
             if self.jump_count <= 0:
                 self.falling = False
+                self.land_sound.play()
 
     def can_jump_again(self):
         if not self.falling and not self.jumping:

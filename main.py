@@ -14,7 +14,7 @@ from wave import Wave
 class TST(Sprite):
     def __init__(self, leftX=0, leftY=0, width=800, height=600):
         Sprite.__init__(self)
-        picture = image.load("./background.png")
+        picture = image.load("sources/imgs/background.png")
         picture = pygame.transform.scale(picture, (width, height))
         self.image = picture.convert_alpha()
 
@@ -41,9 +41,8 @@ if __name__ == "__main__":
     HEIGHT = 600
     SCALE = 32
     mixer.init()
-    mixer.stop()
-    music.set_volume(0.8)
-    music.load("./breeze_bay.mp3")
+    music.set_volume(0.5)
+    music.load("sources/sounds/breeze_bay.mp3")
     music.play(loops=-1)
 
     # init pygame
@@ -79,6 +78,7 @@ if __name__ == "__main__":
     menu = Menu()
     opened_menu = False
     hardmode = False
+
     while 1:
         clock.tick(144)
         for e in event.get():
