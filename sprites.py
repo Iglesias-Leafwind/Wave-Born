@@ -19,12 +19,13 @@ class BlockSprite(pygame.sprite.Sprite):
 
         self.block = block
         block_type = block.block_type
-        self.image = BLOCK_SPRITESHEET.image_at((SCALE*block_type,0,SCALE,SCALE),-1)
-        
+        self.image = BLOCK_SPRITESHEET.image_at((SCALE * block_type, 0, SCALE, SCALE), -1)
+
         self.rect = self.image.get_rect()
         self.rect.x = block.x
         self.rect.y = block.y
-    
+
+
 class PlayerSprite(pygame.sprite.Sprite):
     __player_sprite = None
 
@@ -54,7 +55,7 @@ class PlayerSprite(pygame.sprite.Sprite):
         )
             for a, b in self.left_move_images
         ]
-        self.left_move_images.append(0)
+        self.left_move_images.append(0) # index of the current image
 
         self.right_move_images = ((0, 3), (1, 3), (2, 3), (3, 3))
         self.right_move_images = [pygame.transform.scale(
@@ -65,21 +66,20 @@ class PlayerSprite(pygame.sprite.Sprite):
         )
             for a, b in self.right_move_images
         ]
-        self.right_move_images.append(0)
+        self.right_move_images.append(0) # index of the current image
 
         self.jump_count = 0  # number of UP actions done for a jump
         self.jump_limit = 60  # max number of UP actions per each jump
         self.jumping = False  # is jumping
         self.falling = False  # is falling
-        self.running = False
-        self.last_action = None
-        self.without_moving = 0
+        self.running = False  # is running
+        self.without_moving = 0  # number of updates without moving action
 
         # to avoid consecutive jumps
         # when the user presses the space key and never lift the finger, the sprite will jump forever :x
         self.jump_again = True
 
-        self.image = self.left_move_images[2]
+        self.image = self.stop_image
         self.rect = self.image.get_rect()
         self.rect.y = 500
         self.mask = pygame.mask.from_surface(self.image)
@@ -100,35 +100,30 @@ class PlayerSprite(pygame.sprite.Sprite):
         pygame.draw.polygon(player_maskSurf, (0, 0, 255), olist, 0)
         mask.blit(player_maskSurf, (self.rect.x, self.rect.y))
 
-    def update(self):
-        if self.player.direction:
-            self.last_action = self.player.direction
-            move_images = None
-            if self.player.direction == Directions.LEFT:
-                move_images = self.left_move_images
-                self.running = True
-            elif self.player.direction == Directions.RIGHT:
-                move_images = self.right_move_images
-                self.running = True
-            elif self.player.direction == Directions.UP:
-                if self.jump_count < self.jump_limit and not self.falling and self.jump_again:
-                    self.jumping = True
-                    self.jump_again = False
-                    self.jump_sound.play()
-                self.running = False
-            else:
-                self.running = False
+    def _start_jump(self):
+        self.jumping = True
+        self.jump_again = False
+        self.jump_sound.play()
 
-            if self.player.direction != Directions.UP:
-                x, y = self.player.direction
-                self.rect.x += x
-                self.rect.y += y
+    def _jump(self):
+        self.rect.y -= 0.1 - ACC
+        self.jump_count += 0.5
 
-            if move_images:
-                next_image = move_images[-1]
-                move_images[-1] = (next_image + 1) % 4
-                self.image = move_images[next_image]
+    def _fail(self):
+        self.rect.y += 1
+        self.jump_count -= 0.5
+        if self.jump_count <= 0:
+            self.falling = False
+            self.land_sound.play()
+            self.jump_count = 0
 
+    def _update_image(self, move_images):
+        if move_images:
+            next_image = move_images[-1]
+            move_images[-1] = (next_image + 1) % 4
+            self.image = move_images[next_image]
+
+    def _check_running(self):
         if not self.player.direction:
             self.without_moving += 1
         else:
@@ -138,6 +133,38 @@ class PlayerSprite(pygame.sprite.Sprite):
             self.without_moving = 0
             self.running = False
 
+    def _check_jump(self):
+        if self.jump_count >= self.jump_limit:
+            self.jumping = False
+            self.falling = True
+
+    def update(self):
+        if self.player.direction:
+            move_images = None
+            if self.player.direction == Directions.LEFT:
+                move_images = self.left_move_images
+                self.running = True
+            elif self.player.direction == Directions.RIGHT:
+                move_images = self.right_move_images
+                self.running = True
+            elif self.player.direction == Directions.UP:
+                if self.jump_count < self.jump_limit and not self.falling and self.jump_again:
+                    self._start_jump()
+                self.running = False
+            else:
+                self.running = False
+
+            if self.player.direction != Directions.UP:
+                # update the position when the direction is different of UP
+                # because when the direction == UP, we will modify the y in the jump method
+                x, y = self.player.direction
+                self.rect.x += x
+                self.rect.y += y
+
+            self._update_image(move_images)
+
+        self._check_running()
+
         if self.running and not self.playing_running_sound:
             self.running_sound.play(loops=-1)
             self.playing_running_sound = True
@@ -145,19 +172,12 @@ class PlayerSprite(pygame.sprite.Sprite):
             self.playing_running_sound = False
             self.running_sound.stop()
 
-        if self.jump_count >= self.jump_limit:
-            self.jumping = False
-            self.falling = True
+        self._check_jump()
 
         if self.jumping:
-            self.rect.y -= 0.1 - ACC
-            self.jump_count += 0.5
+            self._jump()
         elif self.falling:
-            self.rect.y += 1
-            self.jump_count -= 0.5
-            if self.jump_count <= 0:
-                self.falling = False
-                self.land_sound.play()
+            self._fail()
 
         self.player.direction = None
 
