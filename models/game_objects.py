@@ -53,6 +53,13 @@ class SpiderLike(Monster):
     def __init__(self, start_width=0, stop_width=0, start_height=0, stop_height=0):
         super().__init__(start_width, stop_width, start_height, stop_height)
 
+    def spawn(self):
+        self.pos = [
+            random.randrange(self.start_width, self.stop_width),
+            500,
+        ]
+        return self.pos
+
     def clone(self) -> Monster:
         return SpiderLike(self.start_width, self.stop_width, self.start_height, self.stop_height)
 
