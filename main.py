@@ -4,9 +4,9 @@ from pygame.sprite import *
 from pygame.mixer import *
 import random
 
-from models.game_objects import Player, BirdLike, Spawner, SpiderLike
+from models.game_objects import Player, BirdLike, Spawner, SpiderLike, Whale
 from menu.menu import Menu
-from sprites.sprites import PlayerSprite, BirdLikeSprite, SpiderLikeSprite
+from sprites.sprites import PlayerSprite, BirdLikeSprite, SpiderLikeSprite, WhaleSprite
 from wave import Wave
 
 
@@ -59,18 +59,24 @@ if __name__ == "__main__":
 
     bird = BirdLike(stop_width=WIDTH, stop_height=HEIGHT)
     spawner = Spawner()
-    birds = [spawner.spawn_monster(bird) for _ in range(10)]
+    birds = [spawner.spawn_monster(bird) for _ in range(5)]
     bird_sprite = BirdLikeSprite(birds, SCALE)
 
     spider = SpiderLike(stop_width=WIDTH, stop_height=HEIGHT)
-    spiders = [spawner.spawn_monster(spider) for _ in range(10)]
+    spiders = [spawner.spawn_monster(spider) for _ in range(5)]
     spider_sprite = SpiderLikeSprite(spiders, SCALE)
+
+
+    whale = Whale(stop_width=WIDTH, stop_height=HEIGHT)
+    whales = [spawner.spawn_monster(whale) for _ in range(1)]
+    whale_sprite = WhaleSprite(whales, SCALE)
 
     all_sprites = sprite.Group()
     all_sprites.add(sprite_object)
     all_sprites.add(player_sprite)
     all_sprites.add(bird_sprite)
     all_sprites.add(spider_sprite)
+    all_sprites.add(whale_sprite)
 
     clock = pygame.time.Clock()
 
@@ -146,6 +152,7 @@ if __name__ == "__main__":
             all_sprites.draw(screen)
             bird_sprite.draw(mask)
             spider_sprite.draw(mask)
+            whale_sprite.draw(mask)
 
             # draw transparent circle and update display
             screen.blit(mask, (0, 0))

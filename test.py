@@ -1,10 +1,2 @@
-import time
-
-from pygame import mixer
-
-from models.sound import Sound
-mixer.init()
-s = Sound("sources/sounds/land2-43790.mp3")
-while True:
-    s.play()
-    time.sleep(1)
+a = [1,2,3]
+print(a[::])

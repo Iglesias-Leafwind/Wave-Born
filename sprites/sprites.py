@@ -186,17 +186,61 @@ class PlayerSprite(pygame.sprite.Sprite):
             self.jump_again = True
 
 
-class BirdLikeSprite(pygame.sprite.Sprite):
+class MonsterSprite(pygame.sprite.Sprite):
+    def __init__(self, change_per_frames=0):
+        Sprite.__init__(self)
+        self.left_move_images = []
+        self.right_move_images = []
+        self.img_indexes = []
+        self.monsters = []
+        self.change_per_frames = change_per_frames
+        self.count = 0
+
+    def _next_image(self, id, left):
+        if left:
+            move_images = self.left_move_images
+        else:
+            move_images = self.right_move_images
+
+        next_index = self.img_indexes[id]
+        next_image = move_images[next_index]
+
+        if self.count >= self.change_per_frames:
+            self.img_indexes[id] = (next_index + 1) % len(move_images)
+            self.count = 0
+        else:
+            self.count += 1
+        return next_image
+
+    def update(self):
+        # TODO move randomly
+        pass
+
+    def draw(self, mask):
+        self.mask = pygame.mask.from_surface(self.image)
+        monster_maskSurf = self.mask.to_surface()
+        monster_maskSurf.set_colorkey((0, 0, 0, 0))
+        olist = self.mask.outline()
+        pygame.draw.polygon(monster_maskSurf, (0, 0, 255), olist, 0)
+
+        for i, monster in enumerate(self.monsters):
+            mask.blit(
+                self._next_image(i, True),
+                (monster.pos[0], monster.pos[1]),
+            )
+
+
+class BirdLikeSprite(MonsterSprite):
     __bird_sprite = None
 
     def __init__(self, birds, SCALE):
-        Sprite.__init__(self)
+        MonsterSprite.__init__(self, 16)
 
         BIRD_SPRITESHEET = SpriteSheet("sources/imgs/bird.png")
         SPRITE_WIDTH = 91
         SPRITE_HEIGHT = 96
 
-        self.birds = birds
+        self.monsters = birds
         self.SCALE = SCALE
 
         self.left_move_images = [(i, 0) for i in range(9)]
@@ -211,52 +255,29 @@ class BirdLikeSprite(pygame.sprite.Sprite):
 
         self.right_move_images = [pygame.transform.flip(mi, True, False) for mi in self.left_move_images]
 
-        self.img_indexes = [0] * len(self.birds)
+        self.img_indexes = [0] * len(self.monsters)
 
         self.image = self.left_move_images[0]
         self.rect = self.image.get_rect()
         self.mask = pygame.mask.from_surface(self.image)
         BirdLikeSprite.__bird_sprite = self
 
-    def _next_image(self, bird_id, left):
-        if left:
-            move_images = self.left_move_images
-        else:
-            move_images = self.right_move_images
-
-        next_index = self.img_indexes[bird_id]
-        next_image = move_images[next_index]
-        self.img_indexes[bird_id] = (next_index + 1) % len(move_images)
-        return next_image
-
     def update(self):
         # TODO move randomly
         pass
 
-    def draw(self, mask):
-        self.mask = pygame.mask.from_surface(self.image)
-        bird_maskSurf = self.mask.to_surface()
-        bird_maskSurf.set_colorkey((0, 0, 0, 0))
-        olist = self.mask.outline()
-        pygame.draw.polygon(bird_maskSurf, (0, 0, 255), olist, 0)
 
-        for i, bird in enumerate(self.birds):
-            mask.blit(
-                self._next_image(i, False),
-                (bird.pos[0], bird.pos[1]),
-            )
-
-class SpiderLikeSprite(pygame.sprite.Sprite):
+class SpiderLikeSprite(MonsterSprite):
     __spider_sprite = None
 
-    def __init__(self, birds, SCALE):
-        Sprite.__init__(self)
+    def __init__(self, spiders, SCALE):
+        MonsterSprite.__init__(self)
 
         SPIDER_SPRITESHEET = SpriteSheet("sources/imgs/spider.png")
         SPRITE_WIDTH = 127
         SPRITE_HEIGHT = 124
 
-        self.birds = birds
+        self.monsters = spiders
         self.SCALE = SCALE
 
         self.left_move_images = [(i, 0) for i in range(13)]
@@ -271,36 +292,51 @@ class SpiderLikeSprite(pygame.sprite.Sprite):
 
         self.right_move_images = [pygame.transform.flip(mi, True, False) for mi in self.left_move_images]
 
-        self.img_indexes = [0] * len(self.birds)
+        self.img_indexes = [0] * len(self.monsters)
 
         self.image = self.left_move_images[0]
         self.rect = self.image.get_rect()
         self.mask = pygame.mask.from_surface(self.image)
-        SpiderLikeSprite.__bird_sprite = self
-
-    def _next_image(self, bird_id, left):
-        if left:
-            move_images = self.left_move_images
-        else:
-            move_images = self.right_move_images
-
-        next_index = self.img_indexes[bird_id]
-        next_image = move_images[next_index]
-        self.img_indexes[bird_id] = (next_index + 1) % len(move_images)
-        return next_image
+        SpiderLikeSprite.__spider_sprite = self
 
     def update(self):
         # TODO move randomly
         pass
 
-    def draw(self, mask):
+
+class WhaleSprite(MonsterSprite):
+    __whale_sprite = None
+
+    def __init__(self, spiders, SCALE):
+        MonsterSprite.__init__(self, 32)
+
+        WHALE_SPRITESHEET = SpriteSheet("sources/imgs/whale.png")
+        SPRITE_WIDTH = 133
+        SPRITE_HEIGHT = 44
+
+        self.monsters = spiders
+        self.SCALE = SCALE
+
+        self.left_move_images = [(0, i) for i in range(7)]
+        self.left_move_images = self.left_move_images[::-1]
+        self.left_move_images = [pygame.transform.scale(
+            WHALE_SPRITESHEET.image_at(
+                (a * SPRITE_WIDTH, b * SPRITE_HEIGHT, SPRITE_WIDTH, SPRITE_HEIGHT), -1
+            ).convert_alpha(),
+            (SCALE, SCALE),
+        )
+            for a, b in self.left_move_images
+        ]
+
+        self.right_move_images = [pygame.transform.flip(mi, True, False) for mi in self.left_move_images]
+
+        self.img_indexes = [0] * len(self.monsters)
+
+        self.image = self.left_move_images[0]
+        self.rect = self.image.get_rect()
         self.mask = pygame.mask.from_surface(self.image)
-        bird_maskSurf = self.mask.to_surface()
-        bird_maskSurf.set_colorkey((0, 0, 0, 0))
-        olist = self.mask.outline()
-        pygame.draw.polygon(bird_maskSurf, (0, 0, 255), olist, 0)
-        for i, bird in enumerate(self.birds):
-            mask.blit(
-                self._next_image(i, False),
-                (bird.pos[0], bird.pos[1]),
-            )
+        WHALE_SPRITESHEET.__whale_sprite = self
+
+    def update(self):
+        # TODO move randomly
+        pass
