@@ -1,14 +1,12 @@
 import pygame
 from pygame.sprite import Sprite
 
-from common import Directions
-from sound import Sound
-from spritesheet import SpriteSheet
+from models.common import Directions
+from models.sound import Sound
+from sprites.spritesheet import SpriteSheet
 
 CELL_SIZE = 64
 
-SPRITE_WIDTH = 80
-SPRITE_HEIGHT = 72
 ACC = 0.0975
 
 
@@ -33,6 +31,8 @@ class PlayerSprite(pygame.sprite.Sprite):
         Sprite.__init__(self)
 
         PLAYER_SPRITESHEET = SpriteSheet("sources/imgs/player.png")
+        SPRITE_WIDTH = 80
+        SPRITE_HEIGHT = 72
 
         self.player = player
         self.SCALE = SCALE
@@ -55,7 +55,7 @@ class PlayerSprite(pygame.sprite.Sprite):
         )
             for a, b in self.left_move_images
         ]
-        self.left_move_images.append(0) # index of the current image
+        self.left_move_images.append(0)  # index of the current image
 
         self.right_move_images = ((0, 3), (1, 3), (2, 3), (3, 3))
         self.right_move_images = [pygame.transform.scale(
@@ -66,7 +66,7 @@ class PlayerSprite(pygame.sprite.Sprite):
         )
             for a, b in self.right_move_images
         ]
-        self.right_move_images.append(0) # index of the current image
+        self.right_move_images.append(0)  # index of the current image
 
         self.jump_count = 0  # number of UP actions done for a jump
         self.jump_limit = 60  # max number of UP actions per each jump
@@ -120,7 +120,7 @@ class PlayerSprite(pygame.sprite.Sprite):
     def _update_image(self, move_images):
         if move_images:
             next_image = move_images[-1]
-            move_images[-1] = (next_image + 1) % 4
+            move_images[-1] = (next_image + 1) % (len(move_images) - 1)
             self.image = move_images[next_image]
 
     def _check_running(self):
@@ -184,3 +184,63 @@ class PlayerSprite(pygame.sprite.Sprite):
     def can_jump_again(self):
         if not self.falling and not self.jumping:
             self.jump_again = True
+
+
+class BirdLikeSprite(pygame.sprite.Sprite):
+    __bird_sprite = None
+
+    def __init__(self, birds, SCALE):
+        Sprite.__init__(self)
+
+        BIRD_SPRITESHEET = SpriteSheet("sources/imgs/bird2.png")
+        SPRITE_WIDTH = 94
+        SPRITE_HEIGHT = 90
+
+        self.birds = birds
+        self.SCALE = SCALE
+
+        self.left_move_images = [(i, 0) for i in range(9)]
+        self.left_move_images = [pygame.transform.scale(
+            BIRD_SPRITESHEET.image_at(
+                (a * SPRITE_WIDTH, b * SPRITE_HEIGHT, SPRITE_WIDTH, SPRITE_HEIGHT), -1
+            ).convert_alpha(),
+            (SCALE, SCALE),
+        )
+            for a, b in self.left_move_images
+        ]
+
+        self.right_move_images = [pygame.transform.flip(mi, True, False) for mi in self.left_move_images]
+
+        self.img_indexes = [0] * len(self.birds)
+
+        self.image = self.left_move_images[0]
+        self.rect = self.image.get_rect()
+        self.mask = pygame.mask.from_surface(self.image)
+        BirdLikeSprite.__bird_sprite = self
+
+    def _next_image(self, bird_id, left):
+        if left:
+            move_images = self.left_move_images
+        else:
+            move_images = self.right_move_images
+
+        next_index = self.img_indexes[bird_id]
+        next_image = move_images[next_index]
+        self.img_indexes[bird_id] = (next_index + 1) % len(move_images)
+        return next_image
+
+    def update(self):
+        # TODO move randomly
+        pass
+
+    def draw(self, mask):
+        self.mask = pygame.mask.from_surface(self.image)
+        bird_maskSurf = self.mask.to_surface()
+        bird_maskSurf.set_colorkey((0, 0, 0, 0))
+        olist = self.mask.outline()
+        pygame.draw.polygon(bird_maskSurf, (0, 0, 255), olist, 0)
+        for i, bird in enumerate(self.birds):
+            mask.blit(
+                self._next_image(i, False),
+                (bird.pos[0], bird.pos[1]),
+            )

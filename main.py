@@ -1,13 +1,12 @@
-import pygame, sys
+import pygame
 from pygame import *
 from pygame.sprite import *
 from pygame.mixer import *
-from pygame.font import *
 import random
 
-from game_objects import Player
+from models.game_objects import Player, BirdLike, Spawner
 from menu.menu import Menu
-from sprites import PlayerSprite
+from sprites.sprites import PlayerSprite, BirdLikeSprite
 from wave import Wave
 
 
@@ -42,8 +41,8 @@ if __name__ == "__main__":
     SCALE = 32
     mixer.init()
     music.set_volume(0.5)
-    #music.load("sources/sounds/breeze_bay.mp3")
-    #music.play(loops=-1)
+    # music.load("sources/sounds/breeze_bay.mp3")
+    # music.play(loops=-1)
 
     # init pygame
     pygame.init()
@@ -53,14 +52,19 @@ if __name__ == "__main__":
     screen.fill((0, 0, 255))
 
     # loading the images
-    sprite_object = TST(width=WIDTH,height=HEIGHT)
+    sprite_object = TST(width=WIDTH, height=HEIGHT)
     player = Player()
     player.controls(pygame.K_a, pygame.K_d, pygame.K_SPACE)
     player_sprite = PlayerSprite(player, SCALE)
 
+    bird = BirdLike(stop_width=WIDTH, stop_height=HEIGHT)
+    spawner = Spawner()
+    birds = [spawner.spawn_monster(bird) for _ in range(10)]
+    bird_sprite = BirdLikeSprite(birds, SCALE)
     all_sprites = sprite.Group()
     all_sprites.add(sprite_object)
     all_sprites.add(player_sprite)
+    all_sprites.add(bird_sprite)
 
     clock = pygame.time.Clock()
 
@@ -128,12 +132,14 @@ if __name__ == "__main__":
 
             for wave in waves:
                 wave.draw(mask)
-            if(not hardmode):
+            if (not hardmode):
                 player_sprite.draw(mask)
-                
+
+
+            all_sprites.update()
             all_sprites.draw(screen)
-            
-            player_sprite.update()
+            bird_sprite.draw(mask)
+
             # draw transparent circle and update display
             screen.blit(mask, (0, 0))
             for wave in waves:
@@ -142,7 +148,7 @@ if __name__ == "__main__":
 
             for wave in waves:
                 wave.update()
-                #print(
+                # print(
                 #    f"------------------------------------------\nR: {wave.radius}\nT: {wave.thicc}\nV: {wave.velocity}\nS: {wave.sound_interval}\n---------------------------")
 
         pygame.display.flip()

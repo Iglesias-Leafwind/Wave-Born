@@ -44,8 +44,7 @@ class Chunk():
 
 if __name__ == "__main__":
     from pygame import *
-    from pygame.sprite import *
-    from sprites import BlockSprite
+    from sprites.sprites import BlockSprite
     WIDTH = 1024+64+64
     HEIGHT = 640
     SCALE = 32
