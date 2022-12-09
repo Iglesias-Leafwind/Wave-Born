@@ -131,9 +131,9 @@ if __name__ == "__main__":
     print(chunk2.can_be_generated(chunk1.post_requisits))
     clock = pygame.time.Clock()
     
-while 1:
-        clock.tick(144)
+    while 1:
+            clock.tick(144)
 
-        all_sprites.draw(screen)
-        pygame.display.flip()
+            all_sprites.draw(screen)
+            pygame.display.flip()
 
