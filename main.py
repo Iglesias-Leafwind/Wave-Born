@@ -150,9 +150,9 @@ if __name__ == "__main__":
 
             all_sprites.update()
             all_sprites.draw(screen)
-            #bird_sprite.draw(mask)
-            #spider_sprite.draw(mask)
-            #whale_sprite.draw(mask)
+            bird_sprite.draw(mask)
+            spider_sprite.draw(mask)
+            whale_sprite.draw(mask)
 
             # draw transparent circle and update display
             screen.blit(mask, (0, 0))
