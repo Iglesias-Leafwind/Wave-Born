@@ -81,6 +81,11 @@ if __name__ == "__main__":
     
     chunk2 = Chunk(96+16*32,blocks,[[0,(blocks_y-5)*SCALE]],[[(blocks_y-16)*SCALE,(blocks_y-11)*SCALE]])
 
+    chunk1 = Chunk.load_chunk("./chunks/planeChunk")
+    chunk2 = Chunk.load_chunk("./chunks/mountainBridgeChunk")
+    chunk1.x = 32
+    chunk2.x = 96+16*32
+    
     for block in chunk1.blocks:
         all_sprites.add(BlockSprite(block,SCALE))
     for block in chunk2.blocks:
@@ -88,7 +93,10 @@ if __name__ == "__main__":
     print(chunk1.can_be_generated(chunk2.post_requisits))
     print(chunk2.can_be_generated(chunk1.post_requisits))
     clock = pygame.time.Clock()
-    
+    chunk1.save_chunk("./chunks/planeChunk")
+    chunk2.save_chunk("./chunks/mountainBridgeChunk")
+
+
     while 1:
             clock.tick(144)
 
