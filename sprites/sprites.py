@@ -263,7 +263,8 @@ class BirdLikeSprite(MonsterSprite):
         BirdLikeSprite.__bird_sprite = self
 
     def update(self):
-        # TODO move randomly
+        # TODO move one side to the other (randomly spawn on one side)
+        # randomly shoots a ball of light
         pass
 
 
@@ -271,7 +272,7 @@ class SpiderLikeSprite(MonsterSprite):
     __spider_sprite = None
 
     def __init__(self, spiders, SCALE):
-        MonsterSprite.__init__(self)
+        MonsterSprite.__init__(self,32)
 
         SPIDER_SPRITESHEET = SpriteSheet("sources/imgs/spider.png")
         SPRITE_WIDTH = 127
@@ -300,7 +301,7 @@ class SpiderLikeSprite(MonsterSprite):
         SpiderLikeSprite.__spider_sprite = self
 
     def update(self):
-        # TODO move randomly
+        # TODO move until hit a wall
         pass
 
 
@@ -338,5 +339,6 @@ class WhaleSprite(MonsterSprite):
         WHALE_SPRITESHEET.__whale_sprite = self
 
     def update(self):
-        # TODO move randomly
+        # TODO move from left to right unless its end of game which will move from right to left
+        # and its laser will destroy blocks
         pass
