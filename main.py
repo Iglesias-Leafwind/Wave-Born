@@ -132,7 +132,7 @@ if __name__ == "__main__":
             menu.mainloop(screen)
         else:
             # create cover surface
-            #mask.fill(0)
+            mask.fill(0)
             if (random.randint(1, 144) == 1):
                 waves.append(Wave(
                     [random.randint(0, 800), random.randint(0, 600)],
