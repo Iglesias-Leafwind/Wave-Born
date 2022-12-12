@@ -1,7 +1,10 @@
+import random
+
 import pygame
 from pygame.sprite import Sprite
 
 from models.common import Directions
+from models.game_objects import Feather
 from models.sound import Sound
 from sprites.spritesheet import SpriteSheet
 
@@ -74,6 +77,7 @@ class PlayerSprite(pygame.sprite.Sprite):
         self.falling = False  # is falling
         self.running = False  # is running
         self.without_moving = 0  # number of updates without moving action
+        self.playing_running_sound = True
 
         # to avoid consecutive jumps
         # when the user presses the space key and never lift the finger, the sprite will jump forever :x
@@ -84,6 +88,9 @@ class PlayerSprite(pygame.sprite.Sprite):
         self.rect.y = 500
         self.mask = pygame.mask.from_surface(self.image)
         PlayerSprite.__player_sprite = self
+
+    def has_collision_with(self, x, y):
+        return abs(self.rect.x - x) < 16 and abs(self.rect.y - y) < 16
 
     @staticmethod
     def get_or_create(**kwargs):
@@ -187,34 +194,42 @@ class PlayerSprite(pygame.sprite.Sprite):
 
 
 class MonsterSprite(pygame.sprite.Sprite):
-    def __init__(self, change_per_frames=0):
+    def __init__(self, image_update_per_frames=0, pos_update_per_frames=0):
         Sprite.__init__(self)
         self.left_move_images = []
         self.right_move_images = []
         self.img_indexes = []
         self.monsters = []
-        self.change_per_frames = change_per_frames
-        self.count = 0
+        self.image_update_per_frames = image_update_per_frames
+        self.pos_update_per_frames = pos_update_per_frames
+        self.image_update_count = 0
+        self.pos_update_count = 0
 
-    def _next_image(self, id, left):
-        if left:
-            move_images = self.left_move_images
-        else:
+    def _next_image(self, id, direction):
+        if direction == 1:
             move_images = self.right_move_images
+        else:
+            move_images = self.left_move_images
 
         next_index = self.img_indexes[id]
         next_image = move_images[next_index]
 
-        if self.count >= self.change_per_frames:
+        if self.image_update_count >= self.image_update_per_frames:
             self.img_indexes[id] = (next_index + 1) % len(move_images)
-            self.count = 0
+            self.image_update_count = 0
         else:
-            self.count += 1
+            self.image_update_count += 1
         return next_image
 
     def update(self):
-        # TODO move randomly
-        pass
+        if self.pos_update_count >= self.pos_update_per_frames:
+            for monster in self.monsters:
+                old_pos = monster.pos
+                new_pos = old_pos[0] + monster.direction, old_pos[1]
+                monster.pos = new_pos
+            self.pos_update_count = 0
+        else:
+            self.pos_update_count += 1
 
     def draw(self, mask):
         self.mask = pygame.mask.from_surface(self.image)
@@ -225,35 +240,101 @@ class MonsterSprite(pygame.sprite.Sprite):
 
         for i, monster in enumerate(self.monsters):
             mask.blit(
-                self._next_image(i, True),
+                self._next_image(i, monster.direction),
                 (monster.pos[0], monster.pos[1]),
             )
 
 
+class FeatherSprite(pygame.sprite.Sprite):
+    __feather_sprite = None
+
+    def __init__(self, WIDTH, HEIGHT, SCALE):
+        Sprite.__init__(self)
+        self.feathers = {}
+        self.WIDTH = WIDTH
+        self.HEIGHT = HEIGHT
+        self.left_image = pygame.image.load("sources/imgs/feather.png").convert_alpha()
+        self.left_image = pygame.transform.scale(self.left_image, (SCALE, SCALE))
+        self.right_image = pygame.transform.flip(self.left_image, True, False)
+
+        self.image = self.left_image
+        self.rect = self.image.get_rect()
+        FeatherSprite.__feather_sprite = self
+
+    @staticmethod
+    def get_or_create(**kwargs):
+        if FeatherSprite.__feather_sprite:
+            return FeatherSprite.__feather_sprite
+        else:
+            return FeatherSprite(**kwargs)
+
+    def add_feather(self, bird_id, feather):
+        self.feathers[bird_id] = feather
+
+    def feather_flying(self, bird_id):
+        return bird_id in self.feathers
+
+    def draw(self, mask):
+        self.mask = pygame.mask.from_surface(self.image)
+        monster_maskSurf = self.mask.to_surface()
+        monster_maskSurf.set_colorkey((0, 0, 0, 0))
+        olist = self.mask.outline()
+        pygame.draw.polygon(monster_maskSurf, (0, 0, 255), olist, 0)
+
+        for feather in self.feathers.values():
+            mask.blit(
+                self._get_image(feather.direction),
+                (feather.pos[0], feather.pos[1]),
+            )
+
+    def _get_image(self, direction):
+        if direction == 1:
+            return self.right_image
+        return self.left_image
+
+    def _has_collision_or_out_of_world(self, feather_pos, WIDTH, HEIGHT):
+        player = PlayerSprite.get_or_create()
+        if player.has_collision_with(feather_pos[0], feather_pos[1]) or \
+                feather_pos[0] < 0 or feather_pos[0] > WIDTH or feather_pos[1] > HEIGHT:
+            return True
+
+    def update(self):
+        to_be_removed = []
+        for bird_id, feather in self.feathers.items():
+            old_pos = feather.pos
+            new_pos = old_pos[0] + feather.direction, old_pos[1] + 1
+            if self._has_collision_or_out_of_world(new_pos, self.WIDTH, self.HEIGHT):
+                to_be_removed.append(bird_id)
+            else:
+                feather.pos = new_pos
+
+        for i in to_be_removed:
+            del self.feathers[i]
+
 class BirdLikeSprite(MonsterSprite):
     __bird_sprite = None
 
-    def __init__(self, birds, SCALE):
-        MonsterSprite.__init__(self, 16)
+    def __init__(self, birds, WIDTH, HEIGHT, SCALE):
+        MonsterSprite.__init__(self, 16, 10)
 
         BIRD_SPRITESHEET = SpriteSheet("sources/imgs/bird.png")
-        SPRITE_WIDTH = 91
-        SPRITE_HEIGHT = 96
+        self.sprite_width = 92
+        self.sprite_height = 96
 
         self.monsters = birds
         self.SCALE = SCALE
-
-        self.left_move_images = [(i, 0) for i in range(9)]
-        self.left_move_images = [pygame.transform.scale(
+        self.feather_sprite = FeatherSprite.get_or_create(WIDTH=WIDTH, HEIGHT=HEIGHT, SCALE=SCALE)
+        self.right_move_images = [(i, 0) for i in range(9)]
+        self.right_move_images = [pygame.transform.scale(
             BIRD_SPRITESHEET.image_at(
-                (a * SPRITE_WIDTH, b * SPRITE_HEIGHT, SPRITE_WIDTH, SPRITE_HEIGHT), -1
+                (a * self.sprite_width, b * self.sprite_height, self.sprite_width, self.sprite_height), -1
             ).convert_alpha(),
             (SCALE * 2, SCALE * 2),
         )
-            for a, b in self.left_move_images
+            for a, b in self.right_move_images
         ]
 
-        self.right_move_images = [pygame.transform.flip(mi, True, False) for mi in self.left_move_images]
+        self.left_move_images = [pygame.transform.flip(mi, True, False) for mi in self.right_move_images]
 
         self.img_indexes = [0] * len(self.monsters)
 
@@ -263,25 +344,39 @@ class BirdLikeSprite(MonsterSprite):
         BirdLikeSprite.__bird_sprite = self
 
     def update(self):
-        # TODO move one side to the other (randomly spawn on one side)
-        # randomly shoots a ball of light
-        pass
+        super(BirdLikeSprite, self).update()
+        for bird in self.monsters:
+            if not bird.attacking:
+                if self._want_attack():
+                    bird.attacking = True
+                    self.feather_sprite.add_feather(bird.id, Feather(bird.get_center(self.sprite_width, self.sprite_height), bird.direction))
+            else:
+                bird.attacking = self.feather_sprite.feather_flying(bird.id)
+
+        self.feather_sprite.update()
+
+    def draw(self, mask):
+        super(BirdLikeSprite, self).draw(mask)
+        self.feather_sprite.draw(mask)
+
+    def _want_attack(self):
+        return random.randint(0, 100) > 99
 
 
 class SpiderLikeSprite(MonsterSprite):
     __spider_sprite = None
 
     def __init__(self, spiders, SCALE):
-        MonsterSprite.__init__(self,32)
+        MonsterSprite.__init__(self, 32, 10)
 
         SPIDER_SPRITESHEET = SpriteSheet("sources/imgs/spider.png")
-        SPRITE_WIDTH = 127
+        SPRITE_WIDTH = 128
         SPRITE_HEIGHT = 124
 
         self.monsters = spiders
         self.SCALE = SCALE
 
-        self.left_move_images = [(i, 0) for i in range(13)]
+        self.left_move_images = [(i, 0) for i in range(12)]
         self.left_move_images = [pygame.transform.scale(
             SPIDER_SPRITESHEET.image_at(
                 (a * SPRITE_WIDTH, b * SPRITE_HEIGHT, SPRITE_WIDTH, SPRITE_HEIGHT), -1
@@ -302,6 +397,7 @@ class SpiderLikeSprite(MonsterSprite):
 
     def update(self):
         # TODO move until hit a wall
+        super(SpiderLikeSprite, self).update()
         pass
 
 

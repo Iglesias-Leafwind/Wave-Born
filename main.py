@@ -4,10 +4,9 @@ from pygame.sprite import *
 from pygame.mixer import *
 import random
 
-from models.game_objects import Player, BirdLike, Spawner, SpiderLike, Whale
+from models.game_objects import Player, BirdLike, Spawner, SpiderLike, Whale, Wave
 from menu.menu import Menu
-from sprites.sprites import PlayerSprite, BirdLikeSprite, SpiderLikeSprite, WhaleSprite
-from wave import Wave
+from sprites.sprites import PlayerSprite, BirdLikeSprite, SpiderLikeSprite, WhaleSprite, FeatherSprite
 
 
 class TST(Sprite):
@@ -60,7 +59,7 @@ if __name__ == "__main__":
     bird = BirdLike(stop_width=WIDTH, stop_height=HEIGHT)
     spawner = Spawner()
     birds = [spawner.spawn_monster(bird) for _ in range(5)]
-    bird_sprite = BirdLikeSprite(birds, SCALE)
+    bird_sprite = BirdLikeSprite(birds, WIDTH, HEIGHT, SCALE)
 
     spider = SpiderLike(stop_width=WIDTH, stop_height=HEIGHT)
     spiders = [spawner.spawn_monster(spider) for _ in range(5)]
@@ -73,6 +72,7 @@ if __name__ == "__main__":
     all_sprites = sprite.Group()
     all_sprites.add(sprite_object)
     all_sprites.add(player_sprite)
+    #all_sprites.add(FeatherSprite([], 32))
 
     clock = pygame.time.Clock()
 
@@ -132,7 +132,7 @@ if __name__ == "__main__":
             menu.mainloop(screen)
         else:
             # create cover surface
-            mask.fill(0)
+            #mask.fill(0)
             if (random.randint(1, 144) == 1):
                 waves.append(Wave(
                     [random.randint(0, 800), random.randint(0, 600)],
@@ -141,7 +141,9 @@ if __name__ == "__main__":
                     [random.randint(0, 25) / 100, random.randint(25, 30) / 100]))
             all_sprites.update()
             all_sprites.draw(screen)
+            bird_sprite.update()
             bird_sprite.draw(screen)
+            spider_sprite.update()
             spider_sprite.draw(screen)
             whale_sprite.draw(screen)
 
