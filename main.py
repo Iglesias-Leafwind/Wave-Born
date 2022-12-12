@@ -66,7 +66,6 @@ if __name__ == "__main__":
     spiders = [spawner.spawn_monster(spider) for _ in range(5)]
     spider_sprite = SpiderLikeSprite(spiders, SCALE)
 
-
     whale = Whale(stop_width=WIDTH, stop_height=HEIGHT)
     whales = [spawner.spawn_monster(whale) for _ in range(1)]
     whale_sprite = WhaleSprite(whales, SCALE)
@@ -74,9 +73,6 @@ if __name__ == "__main__":
     all_sprites = sprite.Group()
     all_sprites.add(sprite_object)
     all_sprites.add(player_sprite)
-    all_sprites.add(bird_sprite)
-    all_sprites.add(spider_sprite)
-    all_sprites.add(whale_sprite)
 
     clock = pygame.time.Clock()
 
@@ -116,16 +112,18 @@ if __name__ == "__main__":
             pygame.quit()
             break
 
+        player.controls(menu.left_key, menu.right_key, menu.jump_key)
+
         if lastKey:
-            if lastKey[K_a]:
-                player.command(K_a)
+            if lastKey[player.left_key]:
+                player.command(player.left_key)
                 player_sprite.update()
-            if lastKey[K_d]:
-                player.command(K_d)
+            if lastKey[player.right_key]:
+                player.command(player.right_key)
                 player_sprite.update()
 
-            if lastKey[K_SPACE]:
-                player.command(K_SPACE)
+            if lastKey[player.jump_key]:
+                player.command(player.jump_key)
                 player_sprite.update()
             else:
                 player_sprite.can_jump_again()
@@ -141,18 +139,17 @@ if __name__ == "__main__":
                     (random.randint(1, 100) / 100),
                     144,
                     [random.randint(0, 25) / 100, random.randint(25, 30) / 100]))
-
-            for wave in waves:
-                wave.draw(mask)
-            if (not hardmode):
-                player_sprite.draw(mask)
-
-
             all_sprites.update()
             all_sprites.draw(screen)
             bird_sprite.draw(screen)
             spider_sprite.draw(screen)
             whale_sprite.draw(screen)
+
+            for wave in waves:
+                wave.draw(mask)
+
+            if not hardmode:
+                player_sprite.draw(mask)
 
             # draw transparent circle and update display
             screen.blit(mask, (0, 0))

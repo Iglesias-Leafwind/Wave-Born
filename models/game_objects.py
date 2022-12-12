@@ -9,6 +9,7 @@ class Player:
 
     def controls(self, left, right, jump):
         self.control_keys = {left: Left, right: Right, jump: Up}
+        self.control_keys_name = {'left': left, 'right': right, 'jump': jump}
 
     def command(self, control):
         if control in self.control_keys.keys():
@@ -21,6 +22,17 @@ class Player:
         if direction:
             self.direction = direction
 
+    @property
+    def left_key(self):
+        return self.control_keys_name['left']
+
+    @property
+    def right_key(self):
+        return self.control_keys_name['right']
+
+    @property
+    def jump_key(self):
+        return self.control_keys_name['jump']
 
 class Monster:
     def __init__(self, start_width=0, stop_width=0, start_height=0, stop_height=0):

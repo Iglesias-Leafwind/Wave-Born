@@ -1,5 +1,7 @@
 import pygame_menu
+from pygame.constants import K_SPACE, K_a, K_d
 from pygame.mixer import *
+import pygame
 
 class Menu(pygame_menu.Menu):
     def __init__(self):
@@ -9,7 +11,6 @@ class Menu(pygame_menu.Menu):
                           onchange=self.set_difficulty)
 
         self.add.button('Play', self.start_the_game)
-        self.add.button('Quit', self.quit)
 
         self.add.range_slider("Volume",
                               default=80,
@@ -17,11 +18,28 @@ class Menu(pygame_menu.Menu):
                               increment=1,
                               value_format=lambda x: str(int(x)),
                               onchange=self.set_volume)
+        self.key_inputs = {}
+        self.key_inputs_pressed = {'LEFT': K_a , 'RIGHT': K_d, 'JUMP': K_SPACE}
+        for i in [('LEFT', 'a'), ('RIGHT', 'd'), ('JUMP', 'space')]:
+            direction = i[0]
+            key = i[1]
+            self.key_inputs[direction] = self.add.text_input(f"{direction}: ", default=f'key.{key}',
+                                                             cursor_selection_enable=False,
+                                                             copy_paste_enable=False,
+                                                             onselect=self.input_selected,
+                                                             onreturn=self.unselect,
+                                                             onchange=self.change_control)
+        self.add.button('Quit', self.quit)
+
         self.show = False
         self.difficulty = 1
         self.volume_ = 5
         self.exit = False
-        
+        self.who_selected = ''
+
+    def unselect(self, *args):
+        self.key_inputs[self.who_selected].select(False)
+
     def start_the_game(self):
         self.show = False
         self.disable()
@@ -38,10 +56,50 @@ class Menu(pygame_menu.Menu):
         self.volume_ = int(v)
         music.set_volume(self.volume)
 
+    def input_selected(self, *args):
+        if args:
+            if args[0]:
+                self.who_selected = args[1].get_title()[:-2]
+
+    def change_control(self, key):
+        p = pygame.key.get_pressed()
+        for i in range(len(p)):
+            if p[i]:
+                break
+
+        if key[-1] == ' ':
+            new_key = 'key.space'
+        else:
+            new_key = key[:4] + key[-1]
+        self.key_inputs[self.who_selected].set_value(new_key)
+        self.key_inputs_pressed[self.who_selected] = i
+
     @property
     def volume(self):
         return self.volume_ / 100
 
+    @property
+    def left_key(self):
+        return self.key_inputs_pressed['LEFT']
+
+    @property
+    def right_key(self):
+        return self.key_inputs_pressed['RIGHT']
+
+    @property
+    def jump_key(self):
+        return self.key_inputs_pressed['JUMP']
+
     def set_show(self):
         self.show = True
         self.enable()
+
+
+if __name__ == '__main__':
+    import pygame
+    import pygame_menu
+
+    pygame.init()
+    surface = pygame.display.set_mode((600, 400))
+    menu = Menu()
+    menu.mainloop(surface)

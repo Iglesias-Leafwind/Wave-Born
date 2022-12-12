@@ -248,7 +248,7 @@ class BirdLikeSprite(MonsterSprite):
             BIRD_SPRITESHEET.image_at(
                 (a * SPRITE_WIDTH, b * SPRITE_HEIGHT, SPRITE_WIDTH, SPRITE_HEIGHT), -1
             ).convert_alpha(),
-            (SCALE, SCALE),
+            (SCALE * 2, SCALE * 2),
         )
             for a, b in self.left_move_images
         ]
@@ -286,7 +286,7 @@ class SpiderLikeSprite(MonsterSprite):
             SPIDER_SPRITESHEET.image_at(
                 (a * SPRITE_WIDTH, b * SPRITE_HEIGHT, SPRITE_WIDTH, SPRITE_HEIGHT), -1
             ).convert_alpha(),
-            (SCALE, SCALE),
+            (SCALE * 2, SCALE * 2),
         )
             for a, b in self.left_move_images
         ]
@@ -324,7 +324,7 @@ class WhaleSprite(MonsterSprite):
             WHALE_SPRITESHEET.image_at(
                 (a * SPRITE_WIDTH, b * SPRITE_HEIGHT, SPRITE_WIDTH, SPRITE_HEIGHT), -1
             ).convert_alpha(),
-            (SCALE, SCALE),
+            (SCALE * 20, SCALE * 8),
         )
             for a, b in self.left_move_images
         ]
