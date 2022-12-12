@@ -63,16 +63,14 @@ if __name__ == "__main__":
 
     spider = SpiderLike(stop_width=WIDTH, stop_height=HEIGHT)
     spiders = [spawner.spawn_monster(spider) for _ in range(5)]
-    spider_sprite = SpiderLikeSprite(spiders, SCALE)
+    spider_sprite = SpiderLikeSprite(spiders, WIDTH, HEIGHT, SCALE)
 
     whale = Whale(stop_width=WIDTH, stop_height=HEIGHT)
-    whales = [spawner.spawn_monster(whale) for _ in range(1)]
-    whale_sprite = WhaleSprite(whales, SCALE)
+    whale_sprite = WhaleSprite([whale], SCALE)
 
     all_sprites = sprite.Group()
     all_sprites.add(sprite_object)
     all_sprites.add(player_sprite)
-    #all_sprites.add(FeatherSprite([], 32))
 
     clock = pygame.time.Clock()
 
@@ -145,6 +143,7 @@ if __name__ == "__main__":
             bird_sprite.draw(screen)
             spider_sprite.update()
             spider_sprite.draw(screen)
+            whale_sprite.update()
             whale_sprite.draw(screen)
 
             for wave in waves:

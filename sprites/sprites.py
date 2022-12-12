@@ -78,6 +78,7 @@ class PlayerSprite(pygame.sprite.Sprite):
         self.running = False  # is running
         self.without_moving = 0  # number of updates without moving action
         self.playing_running_sound = True
+        self.death = False
 
         # to avoid consecutive jumps
         # when the user presses the space key and never lift the finger, the sprite will jump forever :x
@@ -91,6 +92,9 @@ class PlayerSprite(pygame.sprite.Sprite):
 
     def has_collision_with(self, x, y):
         return abs(self.rect.x - x) < 16 and abs(self.rect.y - y) < 16
+
+    def dead(self):
+        self.death = True
 
     @staticmethod
     def get_or_create(**kwargs):
@@ -205,6 +209,9 @@ class MonsterSprite(pygame.sprite.Sprite):
         self.image_update_count = 0
         self.pos_update_count = 0
 
+    def _out_of_world(self, pos, width, height):
+        return pos[0] < 0 or pos[0] > width or pos[1] > height
+
     def _next_image(self, id, direction):
         if direction == 1:
             move_images = self.right_move_images
@@ -296,6 +303,7 @@ class FeatherSprite(pygame.sprite.Sprite):
         player = PlayerSprite.get_or_create()
         if player.has_collision_with(feather_pos[0], feather_pos[1]) or \
                 feather_pos[0] < 0 or feather_pos[0] > WIDTH or feather_pos[1] > HEIGHT:
+            player.dead()
             return True
 
     def update(self):
@@ -311,6 +319,7 @@ class FeatherSprite(pygame.sprite.Sprite):
         for i in to_be_removed:
             del self.feathers[i]
 
+
 class BirdLikeSprite(MonsterSprite):
     __bird_sprite = None
 
@@ -320,6 +329,9 @@ class BirdLikeSprite(MonsterSprite):
         BIRD_SPRITESHEET = SpriteSheet("sources/imgs/bird.png")
         self.sprite_width = 92
         self.sprite_height = 96
+
+        self.width = WIDTH
+        self.height = HEIGHT
 
         self.monsters = birds
         self.SCALE = SCALE
@@ -346,12 +358,20 @@ class BirdLikeSprite(MonsterSprite):
     def update(self):
         super(BirdLikeSprite, self).update()
         for bird in self.monsters:
+            if self._out_of_world(bird.pos, self.width, self.height):
+                self.monsters.remove(bird)
+                continue
+
             if not bird.attacking:
                 if self._want_attack():
                     bird.attacking = True
-                    self.feather_sprite.add_feather(bird.id, Feather(bird.get_center(self.sprite_width, self.sprite_height), bird.direction))
+                    self.feather_sprite.add_feather(bird.id,
+                                                    Feather(bird.get_center(self.sprite_width, self.sprite_height),
+                                                            bird.direction))
             else:
                 bird.attacking = self.feather_sprite.feather_flying(bird.id)
+
+
 
         self.feather_sprite.update()
 
@@ -366,7 +386,7 @@ class BirdLikeSprite(MonsterSprite):
 class SpiderLikeSprite(MonsterSprite):
     __spider_sprite = None
 
-    def __init__(self, spiders, SCALE):
+    def __init__(self, spiders, WIDTH, HEIGHT, SCALE):
         MonsterSprite.__init__(self, 32, 10)
 
         SPIDER_SPRITESHEET = SpriteSheet("sources/imgs/spider.png")
@@ -375,6 +395,8 @@ class SpiderLikeSprite(MonsterSprite):
 
         self.monsters = spiders
         self.SCALE = SCALE
+        self.width = WIDTH
+        self.height = HEIGHT
 
         self.left_move_images = [(i, 0) for i in range(12)]
         self.left_move_images = [pygame.transform.scale(
@@ -398,6 +420,9 @@ class SpiderLikeSprite(MonsterSprite):
     def update(self):
         # TODO move until hit a wall
         super(SpiderLikeSprite, self).update()
+        for spider in self.monsters:
+            if self._out_of_world(spider.pos, self.width, self.height):
+                self.monsters.remove(spider)
         pass
 
 
@@ -405,7 +430,7 @@ class WhaleSprite(MonsterSprite):
     __whale_sprite = None
 
     def __init__(self, spiders, SCALE):
-        MonsterSprite.__init__(self, 32)
+        MonsterSprite.__init__(self, 100, 128)
 
         WHALE_SPRITESHEET = SpriteSheet("sources/imgs/whale.png")
         SPRITE_WIDTH = 133
@@ -414,6 +439,7 @@ class WhaleSprite(MonsterSprite):
         self.monsters = spiders
         self.SCALE = SCALE
 
+        # self.left_move_images = [(0, i) for i in range(7)]
         self.left_move_images = [(0, i) for i in range(7)]
         self.left_move_images = self.left_move_images[::-1]
         self.left_move_images = [pygame.transform.scale(
@@ -437,4 +463,5 @@ class WhaleSprite(MonsterSprite):
     def update(self):
         # TODO move from left to right unless its end of game which will move from right to left
         # and its laser will destroy blocks
+        super(WhaleSprite, self).update()
         pass

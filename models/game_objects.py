@@ -124,6 +124,14 @@ class SpiderLike(Monster):
 class Whale(Monster):
     def __init__(self, start_width=0, stop_width=0, start_height=0, stop_height=0):
         super().__init__(start_width, stop_width, start_height, stop_height)
+        self.direction = -1
+
+    def spawn(self):
+        self.pos = [
+            self.stop_width // 2,
+            50
+        ]
+        return self.pos
 
     def clone(self) -> Monster:
         return Whale(self.start_width, self.stop_width, self.start_height, self.stop_height)
