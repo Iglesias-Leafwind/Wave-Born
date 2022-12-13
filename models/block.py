@@ -23,9 +23,9 @@ class Chunk():
         self.tunnel = tunnel
         self.pre_requisits = pre_requisits
         self.post_requisits = post_requisits
-
+    
     @staticmethod
-    def load_chunk(json_file_path):
+    def load_chunk(xpos,json_file_path):
                 
         # Opening JSON file
         f = open(json_file_path)
@@ -45,7 +45,7 @@ class Chunk():
         # Closing file
         f.close()
         
-        return Chunk(0,blocks,pre_requisits,post_requisits,tunnel)
+        return Chunk(xpos,blocks,pre_requisits,post_requisits,tunnel)
 
     def save_chunk(self,json_file_path):
         # Data to be written
