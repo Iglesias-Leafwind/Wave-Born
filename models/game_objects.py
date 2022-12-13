@@ -67,6 +67,8 @@ class Monster:
         self.start_height = start_height
         self.stop_height = stop_height
         self.direction = random.choice([-1, 1])
+        self.dying = False
+        self.dead = False
         self.id = self._get_id()
         self.spawn()
 

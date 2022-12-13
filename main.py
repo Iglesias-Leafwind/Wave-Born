@@ -54,7 +54,7 @@ if __name__ == "__main__":
     sprite_object = TST(width=WIDTH, height=HEIGHT)
     player = Player()
     player.controls(pygame.K_a, pygame.K_d, pygame.K_SPACE)
-    player_sprite = PlayerSprite(player, SCALE)
+    player_sprite = PlayerSprite(player, [SpiderLikeSprite, BirdLikeSprite] ,SCALE)
 
     bird = BirdLike(stop_width=WIDTH, stop_height=HEIGHT)
     spawner = Spawner()
