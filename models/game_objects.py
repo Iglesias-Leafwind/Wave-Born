@@ -61,8 +61,11 @@ class Wave:
 class Monster:
     _ID = 0
 
-    def __init__(self, start_width=0, stop_width=0, start_height=0, stop_height=0, jump_limit=7, jump_dist_y=1,
-                 jump_dist_x=7):
+    def __init__(self, start_width=0, stop_width=0, start_height=0,
+                 stop_height=0,
+                 jump_limit=7,
+                 jump_dist_x=7,
+                 jump_dist_y=1):
         self.start_width = start_width
         self.stop_width = stop_width
         self.start_height = start_height
@@ -74,8 +77,8 @@ class Monster:
         self.jump_count = 0  # number of UP actions done for a jump
         self.jump_limit = jump_limit  # max number of UP actions per each jump
         self.jumping = False  # is jumping
-        self.jump_dist_y = jump_dist_y
         self.jump_dist_x = jump_dist_x
+        self.jump_dist_y = jump_dist_y
         self.falling = False  # is falling
         self.id = self._get_id()
         self.spawn()
@@ -136,9 +139,12 @@ class Feather:
 
 
 class BirdLike(Monster):
-    def __init__(self, start_width=0, stop_width=0, start_height=0, stop_height=0):
-        super().__init__(start_width, stop_width, start_height, stop_height)
-        self.attacking = False
+    def __init__(self, start_width=0, stop_width=0, start_height=0,
+                 stop_height=0,
+                 jump_limit=7,
+                 jump_dist_x=7,
+                 jump_dist_y=1):
+        super().__init__(start_width, stop_width, start_height, stop_height, jump_limit, jump_dist_x, jump_dist_y)
 
     def clone(self) -> Monster:
         return BirdLike(self.start_width, self.stop_width, self.start_height, self.stop_height)
@@ -150,8 +156,12 @@ class BirdLike(Monster):
 
 
 class SpiderLike(Monster):
-    def __init__(self, start_width=0, stop_width=0, start_height=0, stop_height=0):
-        super().__init__(start_width, stop_width, start_height, stop_height)
+    def __init__(self, start_width=0, stop_width=0, start_height=0,
+                 stop_height=0,
+                 jump_limit=7,
+                 jump_dist_x=7,
+                 jump_dist_y=1):
+        super().__init__(start_width, stop_width, start_height, stop_height, jump_limit, jump_dist_x, jump_dist_y)
 
     def spawn(self):
         self.pos = [
@@ -190,8 +200,12 @@ class SpiderLike(Monster):
 
 
 class Whale(Monster):
-    def __init__(self, start_width=0, stop_width=0, start_height=0, stop_height=0):
-        super().__init__(start_width, stop_width, start_height, stop_height)
+    def __init__(self, start_width=0, stop_width=0, start_height=0,
+                 stop_height=0,
+                 jump_limit=7,
+                 jump_dist_x=7,
+                 jump_dist_y=1):
+        super().__init__(start_width, stop_width, start_height, stop_height, jump_limit, jump_dist_x, jump_dist_y)
         self.direction = -1
 
     def spawn(self):
