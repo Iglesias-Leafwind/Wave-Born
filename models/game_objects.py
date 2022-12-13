@@ -105,6 +105,11 @@ class Monster:
         else:
             self.falling = False
 
+    def move(self):
+        old_pos = self.pos
+        new_pos = old_pos[0] + self.direction, old_pos[1]
+        self.pos = new_pos
+
     def attack(self):
         if not self.dying and not self.is_dead:
             self.attacking = True

@@ -281,14 +281,12 @@ class MonsterSprite(pygame.sprite.Sprite):
         if self.pos_update_count >= self.pos_update_per_frames:
             for monster in self.monsters:
                 if not monster.dying:
-                    old_pos = monster.pos
                     if monster.jumping:
                         monster.jump()
                     elif monster.falling:
                         monster.fail()
                     else:
-                        new_pos = old_pos[0] + monster.direction, old_pos[1]
-                        monster.pos = new_pos
+                        monster.move()
 
             self.pos_update_count = 0
         else:
@@ -305,7 +303,7 @@ class MonsterSprite(pygame.sprite.Sprite):
         for monster in self.monsters:
             mask.blit(
                 self._next_image(monster),
-                (monster.pos[0], monster.pos[1]),
+                (monster.x, monster.y),
             )
         if self.image_update_count >= self.image_update_per_frames:
             self.image_update_count = 0
@@ -418,7 +416,6 @@ class BirdLikeSprite(MonsterSprite):
         for bird in self.monsters:
             if self._out_of_world(bird.pos, self.width, self.height):
                 self._remove_monster(bird)
-                continue
             elif bird.dying and self.img_indexes[bird.id] == len(self.left_dead_images) - 1:
                 bird.is_dead = True
                 self._remove_monster(bird)
@@ -499,9 +496,6 @@ class SpiderLikeSprite(MonsterSprite):
                     else:
                         spider.direction = 1
                     spider.attack()
-
-            if spider.attacking:
-                pass
 
 
 class WhaleSprite(MonsterSprite):
