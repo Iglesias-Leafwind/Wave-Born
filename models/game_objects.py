@@ -61,14 +61,22 @@ class Wave:
 class Monster:
     _ID = 0
 
-    def __init__(self, start_width=0, stop_width=0, start_height=0, stop_height=0):
+    def __init__(self, start_width=0, stop_width=0, start_height=0, stop_height=0, jump_limit=7, jump_dist_y=1,
+                 jump_dist_x=7):
         self.start_width = start_width
         self.stop_width = stop_width
         self.start_height = start_height
         self.stop_height = stop_height
         self.direction = random.choice([-1, 1])
         self.dying = False
-        self.dead = False
+        self.is_dead = False
+        self.attacking = False
+        self.jump_count = 0  # number of UP actions done for a jump
+        self.jump_limit = jump_limit  # max number of UP actions per each jump
+        self.jumping = False  # is jumping
+        self.jump_dist_y = jump_dist_y
+        self.jump_dist_x = jump_dist_x
+        self.falling = False  # is falling
         self.id = self._get_id()
         self.spawn()
 
@@ -77,12 +85,45 @@ class Monster:
         Monster._ID = id + 1
         return id
 
+    def jump(self):
+        old_pos = self.pos
+        if self.jump_count < self.jump_limit:
+            self.pos = old_pos[0], old_pos[1] - self.jump_dist_y
+            self.jump_count += 1
+        else:
+            self.jumping = False
+            self.falling = True
+
+    def fail(self):
+        old_pos = self.pos
+        if self.jump_count > 0:
+            self.pos = old_pos[0], old_pos[1] + self.jump_dist_y
+            self.jump_count -= 1
+        else:
+            self.falling = False
+
+    def attack(self):
+        if not self.dying and not self.is_dead:
+            self.attacking = True
+
+    def dead(self):
+        self.dying = True
+        self.attacking = False
+
     def spawn(self):
         self.pos = [
             random.randrange(self.start_width, self.stop_width),
             random.randrange(self.start_height, self.stop_height),
         ]
         return self.pos
+
+    @property
+    def x(self):
+        return self.pos[0]
+
+    @property
+    def y(self):
+        return self.pos[1]
 
     def clone(self):
         raise NotImplemented
@@ -118,6 +159,31 @@ class SpiderLike(Monster):
             500,
         ]
         return self.pos
+
+    def jump(self):
+        old_pos = self.pos
+        if self.jump_count < self.jump_limit:
+            self.pos = old_pos[0] + self.jump_dist_x * self.direction, \
+                       old_pos[1] - self.jump_dist_y
+            self.jump_count += 1
+        else:
+            self.jumping = False
+            self.falling = True
+
+    def fail(self):
+        old_pos = self.pos
+        if self.jump_count > 0:
+            self.pos = old_pos[0] + self.jump_dist_x * self.direction, \
+                       old_pos[1] + self.jump_dist_y
+            self.jump_count -= 1
+        else:
+            self.falling = False
+
+    def attack(self):
+        super(SpiderLike, self).attack()
+        self.jumping = True
+        self.falling = False
+        self.jump_count = 0
 
     def clone(self) -> Monster:
         return SpiderLike(self.start_width, self.stop_width, self.start_height, self.stop_height)

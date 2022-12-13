@@ -64,7 +64,7 @@ class PlayerSprite(pygame.sprite.Sprite):
         self.running = False  # is running
         self.without_moving = 0  # number of updates without moving action
         self.playing_running_sound = True
-        self.death = False
+        self.is_dead = False
 
         # to avoid consecutive jumps
         # when the user presses the space key and never lift the finger, the sprite will jump forever :x
@@ -85,7 +85,7 @@ class PlayerSprite(pygame.sprite.Sprite):
             return True
 
     def dead(self):
-        self.death = True
+        self.is_dead = True
 
     @staticmethod
     def get_or_create(**kwargs):
@@ -118,8 +118,7 @@ class PlayerSprite(pygame.sprite.Sprite):
 
     def _fail(self):
         self.rect.y += 1
-        self.jump_count -= 0.5
-        if self.jump_count <= 0 or self.rect.y >= self.pos_before_jump:
+        if self.rect.y >= self.pos_before_jump:
             self.falling = False
             self.land_sound.play()
             self.jump_count = 0
@@ -196,10 +195,11 @@ class PlayerSprite(pygame.sprite.Sprite):
 
     def check_collision(self):
         for enemy in self.enemies:
-            enemy_sprite = enemy.get_or_create()
+            enemy_sprite: MonsterSprite = enemy.get_or_create()
             for monster in enemy_sprite.monsters:
                 if not monster.dying and self.stepped_on(monster.pos[0], monster.pos[1]):
-                    monster.dying = True
+                    enemy_sprite.change_monster_state(monster)
+                    monster.dead()
                     self._start_jump(stepped=True)
                 elif not monster.dying and self.has_collision_with(monster.pos[0], monster.pos[1]):
                     self.dead()
@@ -209,23 +209,27 @@ class PlayerSprite(pygame.sprite.Sprite):
 class MonsterSprite(pygame.sprite.Sprite):
     _single_ton = None
 
-    def __init__(self, image_update_per_frames=0, pos_update_per_frames=0):
+    def __init__(self, image_update_per_frames=0, pos_update_per_frames=0, attack_prob=0.05):
         Sprite.__init__(self)
-        self.monsters = []
-        self.left_move_images = []
-        self.right_move_images = []
-        self.move_img_indexes = []
-        self.left_dead_images = []
-        self.right_dead_images = []
-        self.dead_img_indexes = {}
-        self.dying_count = {}
+        self.monsters: list
+        self.left_move_images: list
+        self.right_move_images: list
+        self.img_indexes: dict
+        self.left_dead_images: list
+        self.right_dead_images: list
+        self.left_attack_images: list
+        self.right_attack_images: list
         self.image_update_per_frames = image_update_per_frames
         self.pos_update_per_frames = pos_update_per_frames
         self.image_update_count = 0
         self.pos_update_count = 0
+        self.attack_prob = attack_prob
 
     def _init_images(self):
         raise NotImplemented
+
+    def change_monster_state(self, monster):
+        self.img_indexes[monster.id] = 0
 
     @classmethod
     def get_or_create(cls, **kwargs):
@@ -237,54 +241,61 @@ class MonsterSprite(pygame.sprite.Sprite):
         return pos[0] < 0 or pos[0] > width or pos[1] > height
 
     def _next_image(self, monster):
+        id = monster.id
+        indexes = self.img_indexes
+
         if monster.dying:
             if monster.direction == 1:
                 images = self.right_dead_images
             else:
                 images = self.left_dead_images
-
-            indexes = self.dead_img_indexes
+        elif monster.attacking:
+            if monster.direction == 1:
+                images = self.right_attack_images
+            else:
+                images = self.left_attack_images
         else:
             if monster.direction == 1:
                 images = self.right_move_images
             else:
                 images = self.left_move_images
-            indexes = self.move_img_indexes
+            indexes = self.img_indexes
 
-        id = monster.id
         next_index = indexes[id]
         next_image = images[next_index]
 
         if self.image_update_count >= self.image_update_per_frames:
             indexes[id] = (next_index + 1) % len(images)
-            self.image_update_count = 0
-            if monster.dying:
-                self.dying_count[id] += 1
-        else:
-            self.image_update_count += 1
         return next_image
 
     def _remove_monster(self, monster):
         self.monsters.remove(monster)
         id = monster.id
-        if id in self.move_img_indexes:
-            self.move_img_indexes.pop(id)
+        if id in self.img_indexes:
+            self.img_indexes.pop(id)
 
-        if id in self.dying_count:
-            self.dying_count.pop(id)
+    def _want_attack(self):
+        return random.random() <= self.attack_prob
 
     def update(self):
         if self.pos_update_count >= self.pos_update_per_frames:
             for monster in self.monsters:
                 if not monster.dying:
                     old_pos = monster.pos
-                    new_pos = old_pos[0] + monster.direction, old_pos[1]
-                    monster.pos = new_pos
+                    if monster.jumping:
+                        monster.jump()
+                    elif monster.falling:
+                        monster.fail()
+                    else:
+                        new_pos = old_pos[0] + monster.direction, old_pos[1]
+                        monster.pos = new_pos
+
             self.pos_update_count = 0
         else:
             self.pos_update_count += 1
 
     def draw(self, mask):
+        self.image_update_count += 1
         self.mask = pygame.mask.from_surface(self.image)
         monster_maskSurf = self.mask.to_surface()
         monster_maskSurf.set_colorkey((0, 0, 0, 0))
@@ -296,6 +307,8 @@ class MonsterSprite(pygame.sprite.Sprite):
                 self._next_image(monster),
                 (monster.pos[0], monster.pos[1]),
             )
+        if self.image_update_count >= self.image_update_per_frames:
+            self.image_update_count = 0
 
 
 class FeatherSprite(pygame.sprite.Sprite):
@@ -367,8 +380,8 @@ class FeatherSprite(pygame.sprite.Sprite):
 
 
 class BirdLikeSprite(MonsterSprite):
-    def __init__(self, birds, WIDTH, HEIGHT, SCALE):
-        MonsterSprite.__init__(self, 16, 10)
+    def __init__(self, birds, WIDTH, HEIGHT, SCALE, attack_prob=0.05):
+        MonsterSprite.__init__(self, 16, 10, attack_prob)
 
         self.sprite_width = 92
         self.sprite_height = 96
@@ -392,12 +405,13 @@ class BirdLikeSprite(MonsterSprite):
         self.right_move_images = load_images(BIRD_SPRITESHEET, self.sprite_width, self.sprite_height,
                                              (self.SCALE * 2, self.SCALE * 2),
                                              self.right_move_images)
-
         self.left_move_images = invert_images(self.right_move_images)
+
+        self.left_attack_images = self.left_move_images
+        self.right_attack_images = self.right_move_images
+
         self.right_dead_images = self.left_dead_images = self.left_move_images[:1]
-        self.move_img_indexes = {m.id: 0 for m in self.monsters}
-        self.dead_img_indexes = {m.id: 0 for m in self.monsters}
-        self.dying_count = {m.id: 0 for m in self.monsters}
+        self.img_indexes = {m.id: 0 for m in self.monsters}
 
     def update(self):
         super(BirdLikeSprite, self).update()
@@ -405,8 +419,8 @@ class BirdLikeSprite(MonsterSprite):
             if self._out_of_world(bird.pos, self.width, self.height):
                 self._remove_monster(bird)
                 continue
-            elif self.dying_count[bird.id] == len(self.dead_img_indexes):
-                bird.dead = True
+            elif bird.dying and self.img_indexes[bird.id] == len(self.left_dead_images) - 1:
+                bird.is_dead = True
                 self._remove_monster(bird)
             else:
                 if not bird.attacking and not bird.dying:
@@ -424,13 +438,10 @@ class BirdLikeSprite(MonsterSprite):
         super(BirdLikeSprite, self).draw(mask)
         self.feather_sprite.draw(mask)
 
-    def _want_attack(self):
-        return random.randint(0, 100) > 99
-
 
 class SpiderLikeSprite(MonsterSprite):
-    def __init__(self, spiders, WIDTH, HEIGHT, SCALE):
-        MonsterSprite.__init__(self, 32, 10)
+    def __init__(self, spiders, WIDTH, HEIGHT, SCALE, attack_prob=0.005):
+        MonsterSprite.__init__(self, 32, 10, attack_prob)
 
         self.monsters = spiders
         self.SCALE = SCALE
@@ -460,19 +471,37 @@ class SpiderLikeSprite(MonsterSprite):
         self.right_move_images = invert_images(self.left_move_images)
         self.right_dead_images = invert_images(self.left_dead_images)
 
-        self.move_img_indexes = {m.id: 0 for m in self.monsters}
-        self.dead_img_indexes = {m.id: 0 for m in self.monsters}
-        self.dying_count = {m.id: 0 for m in self.monsters}
+        self.left_attack_images = load_images(SPIDER_SPRITESHEET, SPRITE_WIDTH, SPRITE_HEIGHT,
+                                              (self.SCALE * 2, self.SCALE * 2),
+                                              [(i, 0) for i in range(12, 17)])
+
+        self.right_attack_images = invert_images(self.left_attack_images)
+
+        self.img_indexes = {m.id: 0 for m in self.monsters}
 
     def update(self):
         super(SpiderLikeSprite, self).update()
+        player = PlayerSprite.get_or_create()
         for spider in self.monsters:
             if self._out_of_world(spider.pos, self.width, self.height):
                 self._remove_monster(spider)
+            elif spider.dying:
+                if self.img_indexes[spider.id] == len(self.left_dead_images) - 1:
+                    spider.is_dead = True
+                    self._remove_monster(spider)
+            elif spider.attacking and self.img_indexes[spider.id] == len(self.left_attack_images) - 1:
+                spider.attacking = False
+            elif abs(player.rect.y - spider.y) < 32 and abs(player.rect.x - spider.x) < 128 and self._want_attack():
+                if not spider.attacking:
+                    self.change_monster_state(spider)
+                    if player.rect.x < spider.x:
+                        spider.direction = -1
+                    else:
+                        spider.direction = 1
+                    spider.attack()
 
-            elif self.dying_count[spider.id] == len(self.dead_img_indexes):
-                spider.dead = True
-                self._remove_monster(spider)
+            if spider.attacking:
+                pass
 
 
 class WhaleSprite(MonsterSprite):
@@ -498,7 +527,7 @@ class WhaleSprite(MonsterSprite):
                                             (self.SCALE * 20, self.SCALE * 8), self.left_move_images)
         self.right_move_images = invert_images(self.left_move_images)
 
-        self.move_img_indexes = {m.id: 0 for m in self.monsters}
+        self.img_indexes = {m.id: 0 for m in self.monsters}
 
     def update(self):
         # TODO move from left to right unless its end of game which will move from right to left
