@@ -2,38 +2,10 @@
     "blocks": [
         {
             "pos": [
-                160,
-                448
+                0,
+                544
             ],
-            "block_type": 2
-        },
-        {
-            "pos": [
-                192,
-                448
-            ],
-            "block_type": 2
-        },
-        {
-            "pos": [
-                224,
-                448
-            ],
-            "block_type": 2
-        },
-        {
-            "pos": [
-                256,
-                448
-            ],
-            "block_type": 2
-        },
-        {
-            "pos": [
-                288,
-                448
-            ],
-            "block_type": 2
+            "block_type": 1
         },
         {
             "pos": [
@@ -51,38 +23,66 @@
         },
         {
             "pos": [
-                96,
-                544
+                0,
+                640
             ],
-            "block_type": 1
+            "block_type": 0
         },
         {
             "pos": [
-                128,
-                544
+                32,
+                640
             ],
-            "block_type": 1
+            "block_type": 0
         },
         {
             "pos": [
-                160,
-                544
+                64,
+                640
             ],
-            "block_type": 1
+            "block_type": 0
         },
         {
             "pos": [
-                192,
-                544
+                0,
+                608
             ],
-            "block_type": 1
+            "block_type": 0
         },
         {
             "pos": [
-                224,
-                544
+                32,
+                608
             ],
-            "block_type": 1
+            "block_type": 0
+        },
+        {
+            "pos": [
+                64,
+                608
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                0,
+                576
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                32,
+                576
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                64,
+                576
+            ],
+            "block_type": 0
         },
         {
             "pos": [
@@ -139,55 +139,6 @@
                 544
             ],
             "block_type": 1
-        },
-        {
-            "pos": [
-                512,
-                544
-            ],
-            "block_type": 1
-        },
-        {
-            "pos": [
-                32,
-                640
-            ],
-            "block_type": 0
-        },
-        {
-            "pos": [
-                64,
-                640
-            ],
-            "block_type": 0
-        },
-        {
-            "pos": [
-                96,
-                640
-            ],
-            "block_type": 0
-        },
-        {
-            "pos": [
-                128,
-                640
-            ],
-            "block_type": 0
-        },
-        {
-            "pos": [
-                160,
-                640
-            ],
-            "block_type": 0
-        },
-        {
-            "pos": [
-                192,
-                640
-            ],
-            "block_type": 0
         },
         {
             "pos": [
@@ -249,55 +200,6 @@
             "pos": [
                 480,
                 640
-            ],
-            "block_type": 0
-        },
-        {
-            "pos": [
-                512,
-                640
-            ],
-            "block_type": 0
-        },
-        {
-            "pos": [
-                32,
-                608
-            ],
-            "block_type": 0
-        },
-        {
-            "pos": [
-                64,
-                608
-            ],
-            "block_type": 0
-        },
-        {
-            "pos": [
-                96,
-                608
-            ],
-            "block_type": 0
-        },
-        {
-            "pos": [
-                128,
-                608
-            ],
-            "block_type": 0
-        },
-        {
-            "pos": [
-                160,
-                608
-            ],
-            "block_type": 0
-        },
-        {
-            "pos": [
-                192,
-                608
             ],
             "block_type": 0
         },
@@ -366,55 +268,6 @@
         },
         {
             "pos": [
-                512,
-                608
-            ],
-            "block_type": 0
-        },
-        {
-            "pos": [
-                32,
-                576
-            ],
-            "block_type": 0
-        },
-        {
-            "pos": [
-                64,
-                576
-            ],
-            "block_type": 0
-        },
-        {
-            "pos": [
-                96,
-                576
-            ],
-            "block_type": 0
-        },
-        {
-            "pos": [
-                128,
-                576
-            ],
-            "block_type": 0
-        },
-        {
-            "pos": [
-                160,
-                576
-            ],
-            "block_type": 0
-        },
-        {
-            "pos": [
-                192,
-                576
-            ],
-            "block_type": 0
-        },
-        {
-            "pos": [
                 224,
                 576
             ],
@@ -472,13 +325,6 @@
         {
             "pos": [
                 480,
-                576
-            ],
-            "block_type": 0
-        },
-        {
-            "pos": [
-                512,
                 576
             ],
             "block_type": 0

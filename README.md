@@ -13,7 +13,7 @@ Infinite Levels
 DONE - SOUND MECHANICS
 
 
-Create folders to be organized
+DONE - Create folders to be organized
 
 
 World generation by blocks:
@@ -25,17 +25,13 @@ World generation by blocks:
 -> Each world block can be 16 in game blocks wide and use the full height of the game
 
 
-Create Player:
+Done -Create Player:
 
--> walking makes sound
+Done -> walking makes sound
 
--> running makes more sound
+Done -> jump start makes a sound
 
--> jump start makes a sound
-
--> jump end makes another sound
-
--> every collision with anything makes a sound
+Done -> jump end makes another sound
 
 -> if any enemy ability or enemy collision or he falls of the level then player dies
 
@@ -45,6 +41,7 @@ Create Enemies:
 -> (birdlike) small flying enemy his cry is a low frequency sound
 
 --> shoots small spheres that on impact makes sound
+--> randomly sound while flying
 
 -> (spiderlike) small ground enemy his cry is a medium frequency sound
 
@@ -55,12 +52,13 @@ Create Enemies:
 -> (turtlelike) medium ground enemy his cry is a medium to high frequency sound
 
 --> makes a small stomp sound when walking around
-
---> if he sees the player jumps in that direction even if the player is no longer there
+--> if he sees the player jumps in that direction even if the player is no longer there (takes a while to jump)
 
 -> (giant whale) giant flying enemy with high frequency sound
 
 --> shouts and gets ready to fire a giant laser from its belly
+--> the length of his shout is the duration of its laser beam
+--> randomly shouts and fires laser based on the shout
 
 --> is incredibly slow
 

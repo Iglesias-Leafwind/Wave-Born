@@ -1,0 +1,500 @@
+{
+    "blocks": [
+        {
+            "pos": [
+                128,
+                448
+            ],
+            "block_type": 2
+        },
+        {
+            "pos": [
+                160,
+                448
+            ],
+            "block_type": 2
+        },
+        {
+            "pos": [
+                192,
+                448
+            ],
+            "block_type": 2
+        },
+        {
+            "pos": [
+                224,
+                448
+            ],
+            "block_type": 2
+        },
+        {
+            "pos": [
+                256,
+                448
+            ],
+            "block_type": 2
+        },
+        {
+            "pos": [
+                0,
+                544
+            ],
+            "block_type": 1
+        },
+        {
+            "pos": [
+                32,
+                544
+            ],
+            "block_type": 1
+        },
+        {
+            "pos": [
+                64,
+                544
+            ],
+            "block_type": 1
+        },
+        {
+            "pos": [
+                96,
+                544
+            ],
+            "block_type": 1
+        },
+        {
+            "pos": [
+                128,
+                544
+            ],
+            "block_type": 1
+        },
+        {
+            "pos": [
+                160,
+                544
+            ],
+            "block_type": 1
+        },
+        {
+            "pos": [
+                192,
+                544
+            ],
+            "block_type": 1
+        },
+        {
+            "pos": [
+                224,
+                544
+            ],
+            "block_type": 1
+        },
+        {
+            "pos": [
+                256,
+                544
+            ],
+            "block_type": 1
+        },
+        {
+            "pos": [
+                288,
+                544
+            ],
+            "block_type": 1
+        },
+        {
+            "pos": [
+                320,
+                544
+            ],
+            "block_type": 1
+        },
+        {
+            "pos": [
+                352,
+                544
+            ],
+            "block_type": 1
+        },
+        {
+            "pos": [
+                384,
+                544
+            ],
+            "block_type": 1
+        },
+        {
+            "pos": [
+                416,
+                544
+            ],
+            "block_type": 1
+        },
+        {
+            "pos": [
+                448,
+                544
+            ],
+            "block_type": 1
+        },
+        {
+            "pos": [
+                480,
+                544
+            ],
+            "block_type": 1
+        },
+        {
+            "pos": [
+                0,
+                640
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                32,
+                640
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                64,
+                640
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                96,
+                640
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                128,
+                640
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                160,
+                640
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                192,
+                640
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                224,
+                640
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                256,
+                640
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                288,
+                640
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                320,
+                640
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                352,
+                640
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                384,
+                640
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                416,
+                640
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                448,
+                640
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                480,
+                640
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                0,
+                608
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                32,
+                608
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                64,
+                608
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                96,
+                608
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                128,
+                608
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                160,
+                608
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                192,
+                608
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                224,
+                608
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                256,
+                608
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                288,
+                608
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                320,
+                608
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                352,
+                608
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                384,
+                608
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                416,
+                608
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                448,
+                608
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                480,
+                608
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                0,
+                576
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                32,
+                576
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                64,
+                576
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                96,
+                576
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                128,
+                576
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                160,
+                576
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                192,
+                576
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                224,
+                576
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                256,
+                576
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                288,
+                576
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                320,
+                576
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                352,
+                576
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                384,
+                576
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                416,
+                576
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                448,
+                576
+            ],
+            "block_type": 0
+        },
+        {
+            "pos": [
+                480,
+                576
+            ],
+            "block_type": 0
+        }
+    ],
+    "pre_requisits": [
+        [
+            0,
+            544
+        ]
+    ],
+    "post_requisits": [
+        [
+            384,
+            544
+        ]
+    ],
+    "tunnel": false
+}
