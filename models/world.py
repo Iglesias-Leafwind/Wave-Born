@@ -1,6 +1,6 @@
 import pygame
 import json
-from block import Chunk
+from models.block import Chunk
 from os import listdir
 from os.path import isfile, join
 import random
@@ -22,15 +22,16 @@ class World():
         
         self.current_chunk = 0
         self.moved = 0
-        self.loaded_chunks = []
+        self.loaded_chunks = [None,None,None,None,None]
         self.world_chunks = []
+        
         self.generateWorld(self.loadFiles())
 
     def loadFiles(self):
-        file_path = "./../chunks/normal"
+        file_path = "./chunks/normal"
         normal_chunks = [Chunk.load_chunk(0,join(file_path,f)) for f in listdir(file_path) if isfile(join(file_path, f))]
         
-        file_path = "./../chunks/tunnel"
+        file_path = "./chunks/tunnel"
         tunnel_chunks = [Chunk.load_chunk(0,join(file_path,f)) for f in listdir(file_path) if isfile(join(file_path, f))]
         return (normal_chunks,tunnel_chunks)
 
@@ -55,8 +56,8 @@ class World():
 
     def startWorld(self):
         for chunk in range(0,3):
-            self.loaded_chunks.append(self.world_chunks[chunk])
-            self.loaded_chunks[chunk].update(-chunk*16*32)
+            self.loaded_chunks[chunk+2] = self.world_chunks[chunk]
+            self.loaded_chunks[chunk+2].update(-chunk*16*32)
     
     def moveWorld(self,move):
         self.moved += move
@@ -67,12 +68,24 @@ class World():
         self.current_chunk += 1
         new_chunk_pos = self.current_chunk+2
         if(new_chunk_pos < len(self.world_chunks)):
-            self.loaded_chunks.append(self.world_chunks[new_chunk_pos])
-            self.loaded_chunks[chunk].update(-new_chunk_pos*16*32+self.moved)
-            
+            removed = self.loaded_chunks[0]
+            for chunk in range(0,4):
+                self.loaded_chunks[chunk] = self.loaded_chunks[chunk+1]
+            added = self.world_chunks[new_chunk_pos]
+            self.loaded_chunks[4] = added
+            self.loaded_chunks[4].update(-new_chunk_pos*16*32+self.moved)
+            return removed, added
+        return None
+    
     def loadPrevChunk(self):
         self.current_chunk -= 1
         new_chunk_pos = self.current_chunk-2
         if(new_chunk_pos > 0):
-            self.loaded_chunks.append(self.world_chunks[new_chunk_pos])
-            self.loaded_chunks[chunk].update(-new_chunk_pos*16*32+self.moved)
+            removed = self.loaded_chunks[4]
+            for chunk in range(4,0,-1):
+                self.loaded_chunks[chunk] = self.loaded_chunks[chunk-1]
+            added = self.world_chunks[new_chunk_pos]
+            self.loaded_chunks[0] = added
+            self.loaded_chunks[0].update(-new_chunk_pos*16*32+self.moved)
+            return removed, added
+        return None

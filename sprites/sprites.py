@@ -14,18 +14,29 @@ ACC = 0.0975
 
 
 class BlockSprite(pygame.sprite.Sprite):
-    def __init__(self, block, SCALE):
+    def __init__(self, chunk, blocks_x, blocks_y, SCALE):
         Sprite.__init__(self)
         BLOCK_SPRITESHEET = SpriteSheet("sources/imgs/blocks.png")
+        self.chunk = chunk
+        self.blocks = self.chunk.blocks
 
-        self.block = block
-        block_type = block.block_type
-        self.image = BLOCK_SPRITESHEET.image_at((SCALE * block_type, 0, SCALE, SCALE), -1)
+        images = [pygame.transform.scale(BLOCK_SPRITESHEET.image_at((SCALE * block.block_type, 0, SCALE, SCALE), -1), (SCALE, SCALE),) for block in self.blocks]
 
-        self.rect = self.image.get_rect()
-        self.rect.x = block.x
-        self.rect.y = block.y
+        rects = [image.get_rect() for image in images]
+        for idx, rect in enumerate(rects):
+            rect.x = self.blocks[idx].x
+            rect.y = self.blocks[idx].y
+        
+        self.rect = rects[0].copy()
+        for rect in rects[1:]:
+            self.rect.union_ip(rect)
 
+        # Create a new transparent image with the combined size.
+        self.image = pygame.Surface(self.rect.size, pygame.SRCALPHA)
+        # Now blit all sprites onto the new surface.
+        for idx,image in enumerate(images):
+            self.image.blit(image, (rects[idx].x-self.rect.left,
+                                           rects[idx].y-self.rect.top))
 
 class PlayerSprite(pygame.sprite.Sprite):
     __player_sprite = None
