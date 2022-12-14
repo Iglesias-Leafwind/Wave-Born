@@ -489,13 +489,13 @@ class GroundMonsterSprite(MonsterSprite):
         player = PlayerSprite.get_or_create()
         for monster in self.monsters:
             if self._out_of_world(monster.pos, self.width, self.height):
-                self._remove_monster(monster)
+                monster.is_dead = True
             elif monster.dying:
                 if self.img_indexes[monster.id] == len(self.left_dead_images) - 1:
                     monster.is_dead = True
-                    self._remove_monster(monster)
             elif monster.attacking and self.img_indexes[monster.id] == len(self.left_attack_images) - 1:
                 monster.attacking = False
+                self.change_monster_state(monster)
             elif abs(player.rect.y - monster.y) < 32 and abs(player.rect.x - monster.x) < 128 and self._want_attack():
                 if not monster.attacking:
                     self.change_monster_state(monster)
@@ -548,6 +548,12 @@ class SpiderLikeSprite(GroundMonsterSprite):
 
         self.img_indexes = {m.id: 0 for m in self.monsters}
 
+    def update(self):
+        super(SpiderLikeSprite, self).update()
+        for spider in self.monsters:
+            if spider.is_dead:
+                self._remove_monster(spider)
+
 
 class TurtleLikeSprite(GroundMonsterSprite):
     def __init__(self, turtles, WIDTH, HEIGHT, SCALE, attack_prob=0.005, cry_prob=0.02):
@@ -594,6 +600,11 @@ class TurtleLikeSprite(GroundMonsterSprite):
     def update(self):
         super(TurtleLikeSprite, self).update()
         for turtle in self.monsters:
+            if turtle.is_dead:
+                self._remove_monster(turtle)
+                self.sound_count[turtle.id]['step'].stop()
+                continue
+
             if turtle.id not in self.sound_count:
                 self.sound_count[turtle.id] = {'step': Sound(self.step_sound_path),
                                                'cry': Sound(self.cry_sound_path),
@@ -602,7 +613,6 @@ class TurtleLikeSprite(GroundMonsterSprite):
                                                "wait": random.randint(1, self.cry_interval)}
 
             finished_crying = time.time() - self.sound_count[turtle.id]['time'] >= self.cry_interval
-
 
             if not turtle.dying and not turtle.attacking:
                 if self._want_cry():
@@ -628,14 +638,12 @@ class TurtleLikeSprite(GroundMonsterSprite):
             else:
                 self.sound_count[turtle.id]['step'].play(loops=-1)
 
-
 class WhaleSprite(MonsterSprite):
-    def __init__(self, whales, SCALE):
-        MonsterSprite.__init__(self, 100, 128, 0.001)
-
+    def __init__(self, whales, SCALE, attack_prob=0.01):
+        MonsterSprite.__init__(self, 100, 128, attack_prob)
         self.monsters = whales
         self.attack_count = {}
-        self.attack_interval = 10  # 10s
+        self.attack_interval = 5  # 10s
         self.sound = Sound("sources/sounds/whale.mp3")
         self.SCALE = SCALE
         self._init_images()
@@ -654,24 +662,36 @@ class WhaleSprite(MonsterSprite):
         self.left_move_images = load_images(WHALE_SPRITESHEET, SPRITE_WIDTH, SPRITE_HEIGHT,
                                             (self.SCALE * 20, self.SCALE * 8), self.left_move_images)
         self.right_move_images = invert_images(self.left_move_images)
-        self.left_attack_images = self.left_move_images
+        self.left_attack_images = load_images(WHALE_SPRITESHEET, SPRITE_WIDTH, 43,
+                                            (self.SCALE * 20, self.SCALE * 8), [(1, 6)]) + \
+                                  load_images(WHALE_SPRITESHEET, SPRITE_WIDTH, 39,
+                                              (self.SCALE * 20, self.SCALE * 8), [(1, 5)])
         self.right_attack_images = invert_images(self.left_attack_images)
+
         self.img_indexes = {m.id: 0 for m in self.monsters}
 
     def update(self):
-        # TODO move from left to right unless its end of game which will move from right to left
-        # and its laser will destroy blocks
         super(WhaleSprite, self).update()
 
         for whale in self.monsters:
-            if not whale.dying and not whale.attacking and self._want_attack():
-                whale.attack()
-                self.sound.play()
-                self.attack_count[whale.id] = time.time()
+            if whale.id not in self.attack_count:
+                self.attack_count[whale.id] = {'time': 1 << 31, 'finished': 0, 'wait': random.randint(1, self.attack_interval)}
 
-            if whale.attacking and time.time() - self.attack_count[whale.id] >= self.attack_interval:
+            if not whale.dying and not whale.attacking:
+                whale_attack = self.attack_count[whale.id]
+                if self._want_attack():
+                    if whale_attack['finished'] == 0 or time.time() - whale_attack['finished'] >= whale_attack['wait']:
+                        whale.attack()
+                        self.change_monster_state(whale)
+                        self.sound.play()
+                        self.attack_count[whale.id]['time'] = time.time()
+                        print(True)
+
+            if whale.attacking and time.time() - self.attack_count[whale.id]['time'] >= self.attack_interval:
                 whale.attacking = False
-
+                self.change_monster_state(whale)
+                self.attack_count[whale.id]['finished'] = time.time()
+                print(False)
 
 def load_images(spritesheet, sprite_width, sprite_height, scale, positions):
     return [pygame.transform.scale(
