@@ -16,13 +16,13 @@ DONE - SOUND MECHANICS
 DONE - Create folders to be organized
 
 
-World generation by blocks:
+DONE - World generation by blocks:
 
--> Create a small algorithm that can whith small world blocks create a playable terrain for the player always generates 2 blocks outside the field of view
+DONE -> Create a small algorithm that can whith small world blocks create a playable terrain for the player always generates 2 blocks outside the field of view
 
--> Create many world blocks each with pre requesits to be able to get to them
+DONE -> Create many world blocks each with pre requesits to be able to get to them
 
--> Each world block can be 16 in game blocks wide and use the full height of the game
+DONE -> Each world block can be 16 in game blocks wide and use the full height of the game
 
 
 Done -Create Player:
