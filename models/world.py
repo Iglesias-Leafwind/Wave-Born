@@ -61,8 +61,9 @@ class World():
     
     def moveWorld(self,move):
         self.moved += move
-        for chunk in self.loaded_Chunks:
-            chunk.update(move)
+        for chunk in self.loaded_chunks:
+            if chunk:
+                chunk.update(move)
 
     def loadNextChunk(self):
         self.current_chunk += 1
@@ -75,7 +76,7 @@ class World():
             self.loaded_chunks[4] = added
             self.loaded_chunks[4].update(-new_chunk_pos*16*32+self.moved)
             return removed, added
-        return None
+        return None, None
     
     def loadPrevChunk(self):
         self.current_chunk -= 1
@@ -88,4 +89,4 @@ class World():
             self.loaded_chunks[0] = added
             self.loaded_chunks[0].update(-new_chunk_pos*16*32+self.moved)
             return removed, added
-        return None
+        return None, None

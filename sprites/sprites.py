@@ -38,6 +38,13 @@ class BlockSprite(pygame.sprite.Sprite):
             self.image.blit(image, (rects[idx].x-self.rect.left,
                                            rects[idx].y-self.rect.top))
 
+    def move(self, velocity):
+        self.rect.move_ip(velocity)
+
+    def remove(self):
+        self.kill()
+
+
 class PlayerSprite(pygame.sprite.Sprite):
     __player_sprite = None
 

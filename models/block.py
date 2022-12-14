@@ -16,13 +16,14 @@ class Chunk:
     def __init__(self, xpos, blocks, pre_requisits, post_requisits, tunnel=False):
         self.x = xpos
         self.blocks = blocks
-
         for block in self.blocks:
             block.x += self.x
 
         self.tunnel = tunnel
         self.pre_requisits = pre_requisits
         self.post_requisits = post_requisits
+    
+
     
     @staticmethod
     def load_chunk(xpos,json_file_path):
