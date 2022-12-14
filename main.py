@@ -7,8 +7,9 @@ import random
 from models.world import *
 from models.game_objects import Player, BirdLike, Spawner, SpiderLike, Whale, Wave, TurtleLike
 from menu.menu import Menu
-from sprites.sprites import PlayerSprite, BirdLikeSprite, SpiderLikeSprite, WhaleSprite, FeatherSprite, TurtleLikeSprite, BlockSprite
 
+from sprites.sprites import PlayerSprite, BirdLikeSprite, SpiderLikeSprite, WhaleSprite, FeatherSprite, \
+    TurtleLikeSprite, WaveSprite, BlockSprite
 
 class TST(Sprite):
     def __init__(self, leftX=0, leftY=0, width=800, height=600):
@@ -58,7 +59,7 @@ if __name__ == "__main__":
     sprite_object = TST(width=WIDTH, height=HEIGHT)
     player = Player()
     player.controls(pygame.K_a, pygame.K_d, pygame.K_SPACE)
-    player_sprite = PlayerSprite(player, [SpiderLikeSprite, BirdLikeSprite, TurtleLikeSprite] ,SCALE)
+    player_sprite = PlayerSprite(player, [SpiderLikeSprite, BirdLikeSprite, TurtleLikeSprite], SCALE)
 
     bird = BirdLike(stop_width=WIDTH, stop_height=HEIGHT)
     spawner = Spawner()
@@ -84,10 +85,11 @@ if __name__ == "__main__":
 
     mask = pygame.Surface((WIDTH, HEIGHT))
     mask.set_colorkey((0, 0, 255))
-    mask.fill(0)
+    # mask.fill(0)
 
     lastKey = None
-    waves = []
+    waves = WaveSprite()
+
     menu = Menu()
     opened_menu = False
     hardmode = False
@@ -153,12 +155,13 @@ if __name__ == "__main__":
         else:
             # create cover surface
             mask.fill(0)
-            if (random.randint(1, 144) == 1):
-                waves.append(Wave(
-                    [random.randint(0, 800), random.randint(0, 600)],
-                    (random.randint(1, 100) / 100),
-                    144,
-                    [random.randint(0, 25) / 100, random.randint(25, 30) / 100]))
+
+            #if (random.randint(1, 144) == 1):
+            #    waves.append(Wave(
+            #        [random.randint(0, 800), random.randint(0, 600)],
+            #       (random.randint(1, 100) / 100),
+            #        144,
+            #        [random.randint(0, 25) / 100, random.randint(25, 30) / 100]))
             #world interaction
             moved += movement
             if int(moved / (SCALE*16)) >= 1:
