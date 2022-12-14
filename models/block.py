@@ -1,7 +1,7 @@
 import pygame
 import json
 
-class Block():
+class Block:
     def __init__(self, pos, block_type):
         self.x = pos[0]
         self.y = pos[1]
@@ -12,7 +12,7 @@ class Block():
         self.broken = True
 
 
-class Chunk():
+class Chunk:
     def __init__(self, xpos, blocks, pre_requisits, post_requisits, tunnel=False):
         self.x = xpos
         self.blocks = blocks
