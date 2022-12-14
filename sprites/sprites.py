@@ -493,15 +493,14 @@ class BirdLikeSprite(MonsterSprite):
                 if self._want_cry():
                     if bird.id not in self.cry_count:
                         # first time
-                        self.cry_count[bird.id] = {'sound': Sound(self.cry_sound_path), 'time': time.time(),
+                        self.cry_count[bird.id] = {'sound': Sound(self.cry_sound_path),
+                                                   'time': time.time(),
                                                    'finished': 0,
-                                                   'wait': random.randint(1, self.cry_interval),
-                                                   'wave': None}
+                                                   'wait': random.randint(1, self.cry_interval)}
                         self.cry_count[bird.id]['sound'].play()
 
-                        wave = Wave([bird.x, bird.y], random.randint(1,10), 144,
-                                        [0,self.cry_count[bird.id]['wait']/10])
-                        self.cry_count[bird.id]['wave'] = wave
+                        wave = Wave([bird.x, bird.y], random.randint(5, 10), 144,
+                                    [0, self.cry_count[bird.id]['wait'] / 10])
                         WaveSprite.get_or_create().add_wave(wave)
 
                     elif finished_crying:
@@ -513,9 +512,8 @@ class BirdLikeSprite(MonsterSprite):
                         elif time.time() - bird_cry['finished'] >= bird_cry['wait']:
                             # finished waiting for random seconds
                             # set finished to 0 and cry again
-                            wave = Wave([bird.x, bird.y], random.randint(1,10), 144,
-                                        [0,bird_cry['wait']/10])
-                            bird_cry['wave'] = wave
+                            wave = Wave([bird.x, bird.y], random.randint(5, 10), 144,
+                                        [0, bird_cry['wait'] / 10])
                             WaveSprite.get_or_create().add_wave(wave)
                             bird_cry['time'] = time.time()
                             bird_cry['sound'].play()
@@ -665,6 +663,8 @@ class TurtleLikeSprite(GroundMonsterSprite):
                         # first time
                         self.sound_count[turtle.id]['time'] = time.time()
                         self.sound_count[turtle.id]['cry'].play()
+                        WaveSprite.get_or_create().add_wave(Wave([turtle.x, turtle.y], random.randint(5, 10), 144,
+                                                                 [0, self.sound_count[turtle.id]['wait'] / 10]))
                     elif finished_crying:
                         turtle_cry = self.sound_count[turtle.id]
                         if turtle_cry['finished'] == 0:
@@ -676,6 +676,8 @@ class TurtleLikeSprite(GroundMonsterSprite):
                             # set finished to 0 and cry again
                             turtle_cry['time'] = time.time()
                             turtle_cry['cry'].play()
+                            WaveSprite.get_or_create().add_wave(Wave([turtle.x, turtle.y], random.randint(5, 10), 144,
+                                        [0, turtle_cry['wait'] / 10]))
                             turtle_cry['finished'] = 0
 
             if turtle.dying or turtle.attacking:
@@ -721,7 +723,9 @@ class WhaleSprite(MonsterSprite):
 
         for whale in self.monsters:
             if whale.id not in self.attack_count:
-                self.attack_count[whale.id] = {'time': 1 << 31, 'finished': 0,
+                self.attack_count[whale.id] = {'time': 1 << 31,
+                                               'finished': 0,
+                                               'wave': None,
                                                'wait': random.randint(1, self.attack_interval)}
 
             if not whale.dying and not whale.attacking:
@@ -731,14 +735,15 @@ class WhaleSprite(MonsterSprite):
                         whale.attack()
                         self.change_monster_state(whale)
                         self.sound.play()
-                        self.attack_count[whale.id]['time'] = time.time()
-                        print(True)
+                        whale_attack['time'] = time.time()
+                        wave = Wave([whale.x - 32, whale.y], 1, 144,
+                                        [0, whale_attack['wait'] / 10])
+                        WaveSprite.get_or_create().add_wave(wave)
 
             if whale.attacking and time.time() - self.attack_count[whale.id]['time'] >= self.attack_interval:
                 whale.attacking = False
                 self.change_monster_state(whale)
                 self.attack_count[whale.id]['finished'] = time.time()
-                print(False)
 
 
 def load_images(spritesheet, sprite_width, sprite_height, scale, positions):
