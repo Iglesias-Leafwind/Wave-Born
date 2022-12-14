@@ -1,4 +1,5 @@
 import random
+import time
 
 import pygame
 from pygame.sprite import Sprite
@@ -541,9 +542,12 @@ class TurtleLikeSprite(GroundMonsterSprite):
 
 class WhaleSprite(MonsterSprite):
     def __init__(self, whales, SCALE):
-        MonsterSprite.__init__(self, 100, 128)
+        MonsterSprite.__init__(self, 100, 128, 0.001)
 
         self.monsters = whales
+        self.attack_count = {}
+        self.attack_interval = 10 # 10s
+        self.sound = Sound("sources/sounds/whale.mp3")
         self.SCALE = SCALE
         self._init_images()
         self.image = self.left_move_images[0]
@@ -561,15 +565,23 @@ class WhaleSprite(MonsterSprite):
         self.left_move_images = load_images(WHALE_SPRITESHEET, SPRITE_WIDTH, SPRITE_HEIGHT,
                                             (self.SCALE * 20, self.SCALE * 8), self.left_move_images)
         self.right_move_images = invert_images(self.left_move_images)
-
+        self.left_attack_images = self.left_move_images
+        self.right_attack_images = invert_images(self.left_attack_images)
         self.img_indexes = {m.id: 0 for m in self.monsters}
 
     def update(self):
         # TODO move from left to right unless its end of game which will move from right to left
         # and its laser will destroy blocks
         super(WhaleSprite, self).update()
-        pass
 
+        for whale in self.monsters:
+            if not whale.dying and not whale.attacking and self._want_attack():
+                whale.attack()
+                self.sound.play()
+                self.attack_count[whale.id] = time.time()
+
+            if whale.attacking and time.time() - self.attack_count[whale.id] >= self.attack_interval:
+                whale.attacking = False
 
 def load_images(spritesheet, sprite_width, sprite_height, scale, positions):
     return [pygame.transform.scale(
