@@ -497,12 +497,71 @@ class SpiderLikeSprite(MonsterSprite):
                         spider.direction = 1
                     spider.attack()
 
+class TurtleLikeSprite(MonsterSprite):
+    def __init__(self, turtles, WIDTH, HEIGHT, SCALE, attack_prob=0.005):
+        MonsterSprite.__init__(self, 25, 10, attack_prob)
+
+        self.monsters = turtles
+        self.SCALE = SCALE
+        self.width = WIDTH
+        self.height = HEIGHT
+        self._init_images()
+        self.image = self.left_move_images[0]
+        self.rect = self.image.get_rect()
+        self.mask = pygame.mask.from_surface(self.image)
+        TurtleLikeSprite._single_ton = self
+
+    def _init_images(self):
+        TURTLE_SPRITESHEET = SpriteSheet("sources/imgs/tortoise.png")
+        SPRITE_WIDTH = 33
+        SPRITE_HEIGHT = 42
+
+        self.left_move_images = load_images(TURTLE_SPRITESHEET, SPRITE_WIDTH, SPRITE_HEIGHT,
+                                            (self.SCALE * 2, self.SCALE * 2),
+                                            [(i, 0) for i in range(3)])
+
+        self.left_dead_images = load_images(TURTLE_SPRITESHEET, 35, 42,
+                                            (self.SCALE * 2, self.SCALE * 2),
+                                            [(i, 3) for i in range(4)])
+
+        self.right_move_images = invert_images(self.left_move_images)
+        self.right_dead_images = invert_images(self.left_dead_images)
+
+        self.left_attack_images = load_images(TURTLE_SPRITESHEET, SPRITE_WIDTH, SPRITE_HEIGHT,
+                                            (self.SCALE * 2, self.SCALE * 2),
+                                            [(i, 2) for i in range(3)])
+
+        self.right_attack_images = invert_images(self.left_attack_images)
+
+        self.img_indexes = {m.id: 0 for m in self.monsters}
+
+    def update(self):
+        super(TurtleLikeSprite, self).update()
+        player = PlayerSprite.get_or_create()
+        for turtle in self.monsters:
+            if self._out_of_world(turtle.pos, self.width, self.height):
+                self._remove_monster(turtle)
+            elif turtle.dying:
+                if self.img_indexes[turtle.id] == len(self.left_dead_images) - 1:
+                    turtle.is_dead = True
+                    self._remove_monster(turtle)
+            elif turtle.attacking and self.img_indexes[turtle.id] == len(self.left_attack_images) - 1:
+                turtle.attacking = False
+            elif abs(player.rect.y - turtle.y) < 32 and abs(player.rect.x - turtle.x) < 128 and self._want_attack():
+                if not turtle.attacking:
+                    self.change_monster_state(turtle)
+                    if player.rect.x < turtle.x:
+                        turtle.direction = -1
+                    else:
+                        turtle.direction = 1
+                    turtle.attack()
+
 
 class WhaleSprite(MonsterSprite):
-    def __init__(self, spiders, SCALE):
+    def __init__(self, whales, SCALE):
         MonsterSprite.__init__(self, 100, 128)
 
-        self.monsters = spiders
+        self.monsters = whales
         self.SCALE = SCALE
         self._init_images()
         self.image = self.left_move_images[0]

@@ -4,9 +4,9 @@ from pygame.sprite import *
 from pygame.mixer import *
 import random
 
-from models.game_objects import Player, BirdLike, Spawner, SpiderLike, Whale, Wave
+from models.game_objects import Player, BirdLike, Spawner, SpiderLike, Whale, Wave, TurtleLike
 from menu.menu import Menu
-from sprites.sprites import PlayerSprite, BirdLikeSprite, SpiderLikeSprite, WhaleSprite, FeatherSprite
+from sprites.sprites import PlayerSprite, BirdLikeSprite, SpiderLikeSprite, WhaleSprite, FeatherSprite, TurtleLikeSprite
 
 
 class TST(Sprite):
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     sprite_object = TST(width=WIDTH, height=HEIGHT)
     player = Player()
     player.controls(pygame.K_a, pygame.K_d, pygame.K_SPACE)
-    player_sprite = PlayerSprite(player, [SpiderLikeSprite, BirdLikeSprite] ,SCALE)
+    player_sprite = PlayerSprite(player, [SpiderLikeSprite, BirdLikeSprite, TurtleLikeSprite] ,SCALE)
 
     bird = BirdLike(stop_width=WIDTH, stop_height=HEIGHT)
     spawner = Spawner()
@@ -64,6 +64,10 @@ if __name__ == "__main__":
     spider = SpiderLike(stop_width=WIDTH, stop_height=HEIGHT)
     spiders = [spawner.spawn_monster(spider) for _ in range(5)]
     spider_sprite = SpiderLikeSprite(spiders, WIDTH, HEIGHT, SCALE)
+
+    turtle = TurtleLike(stop_width=WIDTH, stop_height=HEIGHT)
+    turtles = [spawner.spawn_monster(turtle) for _ in range(3)]
+    turtle_sprite = TurtleLikeSprite(turtles, WIDTH, HEIGHT, SCALE)
 
     whale = Whale(stop_width=WIDTH, stop_height=HEIGHT)
     whale_sprite = WhaleSprite([whale], SCALE)
@@ -78,7 +82,7 @@ if __name__ == "__main__":
 
     mask = pygame.Surface((800, 600))
     mask.set_colorkey((0, 0, 255))
-    mask.fill(0)
+    #mask.fill(0)
 
     lastKey = None
     radius = 0
@@ -130,7 +134,7 @@ if __name__ == "__main__":
             menu.mainloop(screen)
         else:
             # create cover surface
-            mask.fill(0)
+            # mask.fill(0)
             if (random.randint(1, 144) == 1):
                 waves.append(Wave(
                     [random.randint(0, 800), random.randint(0, 600)],
@@ -143,6 +147,8 @@ if __name__ == "__main__":
             bird_sprite.draw(screen)
             spider_sprite.update()
             spider_sprite.draw(screen)
+            turtle_sprite.update()
+            turtle_sprite.draw(screen)
             whale_sprite.update()
             whale_sprite.draw(screen)
 
