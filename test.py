@@ -29,6 +29,7 @@ if __name__ == "__main__":
         if chunk:
             chunk_sprites.append(BlockSprite(chunk,blocks_x,blocks_y,SCALE))
             all_sprites.add(chunk_sprites[-1])
+
     time = 1000
     while 1:
         if time < -500:
@@ -42,7 +43,7 @@ if __name__ == "__main__":
         clock.tick(144)
         
         if movement > 0 and int(world.moved / (SCALE*16)) >= world.current_chunk:
-            removed,added = world.loadNextChunk()
+            _, added = world.loadNextChunk()
             if added:
                 chunk_sprites.append(BlockSprite(added,blocks_x,blocks_y,SCALE))
                 all_sprites.add(chunk_sprites[-1])
