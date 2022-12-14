@@ -436,7 +436,30 @@ class BirdLikeSprite(MonsterSprite):
         self.feather_sprite.draw(mask)
 
 
-class SpiderLikeSprite(MonsterSprite):
+class GroundMonsterSprite(MonsterSprite):
+    def update(self):
+        super(GroundMonsterSprite, self).update()
+        player = PlayerSprite.get_or_create()
+        for monster in self.monsters:
+            if self._out_of_world(monster.pos, self.width, self.height):
+                self._remove_monster(monster)
+            elif monster.dying:
+                if self.img_indexes[monster.id] == len(self.left_dead_images) - 1:
+                    monster.is_dead = True
+                    self._remove_monster(monster)
+            elif monster.attacking and self.img_indexes[monster.id] == len(self.left_attack_images) - 1:
+                monster.attacking = False
+            elif abs(player.rect.y - monster.y) < 32 and abs(player.rect.x - monster.x) < 128 and self._want_attack():
+                if not monster.attacking:
+                    self.change_monster_state(monster)
+                    if player.rect.x < monster.x:
+                        monster.direction = -1
+                    else:
+                        monster.direction = 1
+                    monster.attack()
+
+
+class SpiderLikeSprite(GroundMonsterSprite):
     def __init__(self, spiders, WIDTH, HEIGHT, SCALE, attack_prob=0.005):
         MonsterSprite.__init__(self, 32, 10, attack_prob)
 
@@ -476,28 +499,8 @@ class SpiderLikeSprite(MonsterSprite):
 
         self.img_indexes = {m.id: 0 for m in self.monsters}
 
-    def update(self):
-        super(SpiderLikeSprite, self).update()
-        player = PlayerSprite.get_or_create()
-        for spider in self.monsters:
-            if self._out_of_world(spider.pos, self.width, self.height):
-                self._remove_monster(spider)
-            elif spider.dying:
-                if self.img_indexes[spider.id] == len(self.left_dead_images) - 1:
-                    spider.is_dead = True
-                    self._remove_monster(spider)
-            elif spider.attacking and self.img_indexes[spider.id] == len(self.left_attack_images) - 1:
-                spider.attacking = False
-            elif abs(player.rect.y - spider.y) < 32 and abs(player.rect.x - spider.x) < 128 and self._want_attack():
-                if not spider.attacking:
-                    self.change_monster_state(spider)
-                    if player.rect.x < spider.x:
-                        spider.direction = -1
-                    else:
-                        spider.direction = 1
-                    spider.attack()
 
-class TurtleLikeSprite(MonsterSprite):
+class TurtleLikeSprite(GroundMonsterSprite):
     def __init__(self, turtles, WIDTH, HEIGHT, SCALE, attack_prob=0.005):
         MonsterSprite.__init__(self, 25, 10, attack_prob)
 
@@ -528,33 +531,12 @@ class TurtleLikeSprite(MonsterSprite):
         self.right_dead_images = invert_images(self.left_dead_images)
 
         self.left_attack_images = load_images(TURTLE_SPRITESHEET, SPRITE_WIDTH, SPRITE_HEIGHT,
-                                            (self.SCALE * 2, self.SCALE * 2),
-                                            [(i, 2) for i in range(3)])
+                                              (self.SCALE * 2, self.SCALE * 2),
+                                              [(i, 2) for i in range(3)])
 
         self.right_attack_images = invert_images(self.left_attack_images)
 
         self.img_indexes = {m.id: 0 for m in self.monsters}
-
-    def update(self):
-        super(TurtleLikeSprite, self).update()
-        player = PlayerSprite.get_or_create()
-        for turtle in self.monsters:
-            if self._out_of_world(turtle.pos, self.width, self.height):
-                self._remove_monster(turtle)
-            elif turtle.dying:
-                if self.img_indexes[turtle.id] == len(self.left_dead_images) - 1:
-                    turtle.is_dead = True
-                    self._remove_monster(turtle)
-            elif turtle.attacking and self.img_indexes[turtle.id] == len(self.left_attack_images) - 1:
-                turtle.attacking = False
-            elif abs(player.rect.y - turtle.y) < 32 and abs(player.rect.x - turtle.x) < 128 and self._want_attack():
-                if not turtle.attacking:
-                    self.change_monster_state(turtle)
-                    if player.rect.x < turtle.x:
-                        turtle.direction = -1
-                    else:
-                        turtle.direction = 1
-                    turtle.attack()
 
 
 class WhaleSprite(MonsterSprite):

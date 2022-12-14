@@ -160,7 +160,7 @@ class BirdLike(Monster):
         return self.pos[0], self.pos[1] + height // 2
 
 
-class SpiderLike(Monster):
+class GroundMonster(Monster):
     def __init__(self, start_width=0, stop_width=0, start_height=0,
                  stop_height=0,
                  jump_limit=7,
@@ -195,57 +195,31 @@ class SpiderLike(Monster):
             self.falling = False
 
     def attack(self):
-        super(SpiderLike, self).attack()
+        super(GroundMonster, self).attack()
         self.jumping = True
         self.falling = False
         self.jump_count = 0
 
     def clone(self) -> Monster:
-        return SpiderLike(self.start_width, self.stop_width, self.start_height, self.stop_height)
+        return GroundMonster(self.start_width, self.stop_width, self.start_height, self.stop_height)
 
 
-class TurtleLike(Monster):
+class SpiderLike(GroundMonster):
+    def __init__(self, start_width=0, stop_width=0, start_height=0,
+                 stop_height=0,
+                 jump_limit=7,
+                 jump_dist_x=7,
+                 jump_dist_y=1):
+        super().__init__(start_width, stop_width, start_height, stop_height, jump_limit, jump_dist_x, jump_dist_y)
+
+
+class TurtleLike(GroundMonster):
     def __init__(self, start_width=0, stop_width=0, start_height=0,
                  stop_height=0,
                  jump_limit=3,
                  jump_dist_x=7,
                  jump_dist_y=1):
         super().__init__(start_width, stop_width, start_height, stop_height, jump_limit, jump_dist_x, jump_dist_y)
-
-    def spawn(self):
-        self.pos = [
-            random.randrange(self.start_width, self.stop_width),
-            500,
-        ]
-        return self.pos
-
-    def jump(self):
-        old_pos = self.pos
-        if self.jump_count < self.jump_limit:
-            self.pos = old_pos[0] + self.jump_dist_x * self.direction, \
-                       old_pos[1] - self.jump_dist_y
-            self.jump_count += 1
-        else:
-            self.jumping = False
-            self.falling = True
-
-    def fail(self):
-        old_pos = self.pos
-        if self.jump_count > 0:
-            self.pos = old_pos[0] + self.jump_dist_x * self.direction, \
-                       old_pos[1] + self.jump_dist_y
-            self.jump_count -= 1
-        else:
-            self.falling = False
-
-    def attack(self):
-        super(TurtleLike, self).attack()
-        self.jumping = True
-        self.falling = False
-        self.jump_count = 0
-
-    def clone(self) -> Monster:
-        return TurtleLike(self.start_width, self.stop_width, self.start_height, self.stop_height)
 
 
 class Whale(Monster):
