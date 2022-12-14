@@ -21,13 +21,14 @@ class BlockSprite(pygame.sprite.Sprite):
         self.chunk = chunk
         self.blocks = self.chunk.blocks
 
-        images = [pygame.transform.scale(BLOCK_SPRITESHEET.image_at((SCALE * block.block_type, 0, SCALE, SCALE), -1), (SCALE, SCALE),) for block in self.blocks]
+        images = [pygame.transform.scale(BLOCK_SPRITESHEET.image_at((SCALE * block.block_type, 0, SCALE, SCALE), -1),
+                                         (SCALE, SCALE), ) for block in self.blocks]
 
         rects = [image.get_rect() for image in images]
         for idx, rect in enumerate(rects):
             rect.x = self.blocks[idx].x
             rect.y = self.blocks[idx].y
-        
+
         self.rect = rects[0].copy()
         for rect in rects[1:]:
             self.rect.union_ip(rect)
@@ -35,9 +36,9 @@ class BlockSprite(pygame.sprite.Sprite):
         # Create a new transparent image with the combined size.
         self.image = pygame.Surface(self.rect.size, pygame.SRCALPHA)
         # Now blit all sprites onto the new surface.
-        for idx,image in enumerate(images):
-            self.image.blit(image, (rects[idx].x-self.rect.left,
-                                           rects[idx].y-self.rect.top))
+        for idx, image in enumerate(images):
+            self.image.blit(image, (rects[idx].x - self.rect.left,
+                                    rects[idx].y - self.rect.top))
 
     def move(self, velocity):
         self.rect.move_ip(velocity)
@@ -317,12 +318,6 @@ class MonsterSprite(pygame.sprite.Sprite):
 
     def draw(self, mask):
         self.image_update_count += 1
-        self.mask = pygame.mask.from_surface(self.image)
-        monster_maskSurf = self.mask.to_surface()
-        monster_maskSurf.set_colorkey((0, 0, 0, 0))
-        olist = self.mask.outline()
-        pygame.draw.polygon(monster_maskSurf, (0, 0, 255), olist, 0)
-
         for monster in self.monsters:
             mask.blit(
                 self._next_image(monster),
@@ -401,7 +396,7 @@ class FeatherSprite(pygame.sprite.Sprite):
 
 
 class BirdLikeSprite(MonsterSprite):
-    def __init__(self, birds, WIDTH, HEIGHT, SCALE, attack_prob=0.05, cry_prob=0.01):
+    def __init__(self, birds, WIDTH, HEIGHT, SCALE, attack_prob=0.05, cry_prob=0.02):
         MonsterSprite.__init__(self, 16, 10, attack_prob, cry_prob)
 
         self.sprite_width = 92
@@ -413,9 +408,7 @@ class BirdLikeSprite(MonsterSprite):
         self.monsters = birds
         self.cry_count = {}
         self.cry_interval = 6
-        self.cry_sound = Sound("sources/sounds/eagle.mp3")
-        self.crying = False
-        self.who_crying = None
+        self.cry_sound_path = 'sources/sounds/bird.mp3'
         self.SCALE = SCALE
         self.feather_sprite = FeatherSprite.get_or_create(WIDTH=WIDTH, HEIGHT=HEIGHT, SCALE=SCALE)
 
@@ -442,10 +435,6 @@ class BirdLikeSprite(MonsterSprite):
     def update(self):
         super(BirdLikeSprite, self).update()
 
-        if self.crying and time.time() - self.cry_count[self.who_crying] >= self.cry_interval:
-            self.crying = False
-            self.who_crying = None
-
         for bird in self.monsters:
             if self._out_of_world(bird.pos, self.width, self.height):
                 self._remove_monster(bird)
@@ -463,14 +452,29 @@ class BirdLikeSprite(MonsterSprite):
                 else:
                     bird.attacking = self.feather_sprite.feather_flying(bird.id)
 
-            if bird.id in self.cry_count and time.time() - self.cry_count[bird.id] >= self.cry_interval\
-                    or bird.id not in self.cry_count:
+            finished_crying = bird.id in self.cry_count and time.time() - self.cry_count[bird.id][
+                'time'] >= self.cry_interval
 
-                if not self.crying and self._want_cry():
-                    self.cry_count[bird.id] = time.time()
-                    self.cry_sound.play()
-                    self.crying = True
-                    self.who_crying = bird.id
+            if finished_crying or bird.id not in self.cry_count:
+                if self._want_cry():
+                    if bird.id not in self.cry_count:
+                        # first time
+                        self.cry_count[bird.id] = {'sound': Sound(self.cry_sound_path), 'time': time.time(),
+                                                   'finished': 0,
+                                                   'wait': random.randint(1, self.cry_interval)}
+                        self.cry_count[bird.id]['sound'].play()
+                    elif finished_crying:
+                        bird_cry = self.cry_count[bird.id]
+                        if bird_cry['finished'] == 0:
+                            # just finished crying
+                            # has to wait for random seconds
+                            bird_cry['finished'] = time.time()
+                        elif time.time() - bird_cry['finished'] >= bird_cry['wait']:
+                            # finished waiting for random seconds
+                            # set finished to 0 and cry again
+                            bird_cry['time'] = time.time()
+                            bird_cry['sound'].play()
+                            bird_cry['finished'] = 0
 
         self.feather_sprite.update()
 
@@ -546,13 +550,17 @@ class SpiderLikeSprite(GroundMonsterSprite):
 
 
 class TurtleLikeSprite(GroundMonsterSprite):
-    def __init__(self, turtles, WIDTH, HEIGHT, SCALE, attack_prob=0.005):
-        MonsterSprite.__init__(self, 25, 10, attack_prob)
+    def __init__(self, turtles, WIDTH, HEIGHT, SCALE, attack_prob=0.005, cry_prob=0.02):
+        MonsterSprite.__init__(self, 25, 10, attack_prob, cry_prob)
 
         self.monsters = turtles
         self.SCALE = SCALE
         self.width = WIDTH
         self.height = HEIGHT
+        self.sound_count = {}
+        self.cry_interval = 6
+        self.cry_sound_path = 'sources/sounds/turtle.mp3'
+        self.step_sound_path = 'sources/sounds/step.mp3'
         self._init_images()
         self.image = self.left_move_images[0]
         self.rect = self.image.get_rect()
@@ -583,6 +591,43 @@ class TurtleLikeSprite(GroundMonsterSprite):
 
         self.img_indexes = {m.id: 0 for m in self.monsters}
 
+    def update(self):
+        super(TurtleLikeSprite, self).update()
+        for turtle in self.monsters:
+            if turtle.id not in self.sound_count:
+                self.sound_count[turtle.id] = {'step': Sound(self.step_sound_path),
+                                               'cry': Sound(self.cry_sound_path),
+                                               'time': 1 << 31,
+                                               'finished': 0,
+                                               "wait": random.randint(1, self.cry_interval)}
+
+            finished_crying = time.time() - self.sound_count[turtle.id]['time'] >= self.cry_interval
+
+
+            if not turtle.dying and not turtle.attacking:
+                if self._want_cry():
+                    if self.sound_count[turtle.id]['time'] == 1 << 31:
+                        # first time
+                        self.sound_count[turtle.id]['time'] = time.time()
+                        self.sound_count[turtle.id]['cry'].play()
+                    elif finished_crying:
+                        turtle_cry = self.sound_count[turtle.id]
+                        if turtle_cry['finished'] == 0:
+                            # just finished crying
+                            # has to wait for random seconds
+                            turtle_cry['finished'] = time.time()
+                        elif time.time() - turtle_cry['finished'] >= turtle_cry['wait']:
+                            # finished waiting for random seconds
+                            # set finished to 0 and cry again
+                            turtle_cry['time'] = time.time()
+                            turtle_cry['cry'].play()
+                            turtle_cry['finished'] = 0
+
+            if turtle.dying or turtle.attacking:
+                self.sound_count[turtle.id]['step'].stop()
+            else:
+                self.sound_count[turtle.id]['step'].play(loops=-1)
+
 
 class WhaleSprite(MonsterSprite):
     def __init__(self, whales, SCALE):
@@ -590,7 +635,7 @@ class WhaleSprite(MonsterSprite):
 
         self.monsters = whales
         self.attack_count = {}
-        self.attack_interval = 10 # 10s
+        self.attack_interval = 10  # 10s
         self.sound = Sound("sources/sounds/whale.mp3")
         self.SCALE = SCALE
         self._init_images()
@@ -626,6 +671,7 @@ class WhaleSprite(MonsterSprite):
 
             if whale.attacking and time.time() - self.attack_count[whale.id] >= self.attack_interval:
                 whale.attacking = False
+
 
 def load_images(spritesheet, sprite_width, sprite_height, scale, positions):
     return [pygame.transform.scale(

@@ -166,7 +166,7 @@ class GroundMonster(Monster):
                  jump_limit=7,
                  jump_dist_x=7,
                  jump_dist_y=1):
-        super().__init__(start_width, stop_width, start_height, stop_height, jump_limit, jump_dist_x, jump_dist_y)
+        super(GroundMonster, self).__init__(start_width, stop_width, start_height, stop_height, jump_limit, jump_dist_x, jump_dist_y)
 
     def spawn(self):
         self.pos = [
@@ -187,11 +187,12 @@ class GroundMonster(Monster):
 
     def fail(self):
         old_pos = self.pos
-        if self.jump_count > 0:
+        if self.jump_count >= 0:
             self.pos = old_pos[0] + self.jump_dist_x * self.direction, \
                        old_pos[1] + self.jump_dist_y
             self.jump_count -= 1
         else:
+            self.jump_count = 0
             self.falling = False
 
     def attack(self):
