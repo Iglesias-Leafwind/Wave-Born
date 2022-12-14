@@ -1,4 +1,5 @@
 import random
+import time
 
 import pygame
 from pygame.sprite import Sprite
@@ -227,7 +228,7 @@ class PlayerSprite(pygame.sprite.Sprite):
 class MonsterSprite(pygame.sprite.Sprite):
     _single_ton = None
 
-    def __init__(self, image_update_per_frames=0, pos_update_per_frames=0, attack_prob=0.05):
+    def __init__(self, image_update_per_frames=0, pos_update_per_frames=0, attack_prob=0.05, cry_prob=0.05):
         Sprite.__init__(self)
         self.monsters: list
         self.left_move_images: list
@@ -242,6 +243,7 @@ class MonsterSprite(pygame.sprite.Sprite):
         self.image_update_count = 0
         self.pos_update_count = 0
         self.attack_prob = attack_prob
+        self.cry_prob = cry_prob
 
     def _init_images(self):
         raise NotImplemented
@@ -294,6 +296,9 @@ class MonsterSprite(pygame.sprite.Sprite):
 
     def _want_attack(self):
         return random.random() <= self.attack_prob
+
+    def _want_cry(self):
+        return random.random() <= self.cry_prob
 
     def update(self):
         if self.pos_update_count >= self.pos_update_per_frames:
@@ -396,8 +401,8 @@ class FeatherSprite(pygame.sprite.Sprite):
 
 
 class BirdLikeSprite(MonsterSprite):
-    def __init__(self, birds, WIDTH, HEIGHT, SCALE, attack_prob=0.05):
-        MonsterSprite.__init__(self, 16, 10, attack_prob)
+    def __init__(self, birds, WIDTH, HEIGHT, SCALE, attack_prob=0.05, cry_prob=0.01):
+        MonsterSprite.__init__(self, 16, 10, attack_prob, cry_prob)
 
         self.sprite_width = 92
         self.sprite_height = 96
@@ -406,6 +411,11 @@ class BirdLikeSprite(MonsterSprite):
         self.height = HEIGHT
 
         self.monsters = birds
+        self.cry_count = {}
+        self.cry_interval = 6
+        self.cry_sound = Sound("sources/sounds/eagle.mp3")
+        self.crying = False
+        self.who_crying = None
         self.SCALE = SCALE
         self.feather_sprite = FeatherSprite.get_or_create(WIDTH=WIDTH, HEIGHT=HEIGHT, SCALE=SCALE)
 
@@ -431,9 +441,15 @@ class BirdLikeSprite(MonsterSprite):
 
     def update(self):
         super(BirdLikeSprite, self).update()
+
+        if self.crying and time.time() - self.cry_count[self.who_crying] >= self.cry_interval:
+            self.crying = False
+            self.who_crying = None
+
         for bird in self.monsters:
             if self._out_of_world(bird.pos, self.width, self.height):
                 self._remove_monster(bird)
+                continue
             elif bird.dying and self.img_indexes[bird.id] == len(self.left_dead_images) - 1:
                 bird.is_dead = True
                 self._remove_monster(bird)
@@ -446,6 +462,15 @@ class BirdLikeSprite(MonsterSprite):
                                                                 bird.direction))
                 else:
                     bird.attacking = self.feather_sprite.feather_flying(bird.id)
+
+            if bird.id in self.cry_count and time.time() - self.cry_count[bird.id] >= self.cry_interval\
+                    or bird.id not in self.cry_count:
+
+                if not self.crying and self._want_cry():
+                    self.cry_count[bird.id] = time.time()
+                    self.cry_sound.play()
+                    self.crying = True
+                    self.who_crying = bird.id
 
         self.feather_sprite.update()
 
@@ -482,6 +507,8 @@ class SpiderLikeSprite(GroundMonsterSprite):
         MonsterSprite.__init__(self, 32, 10, attack_prob)
 
         self.monsters = spiders
+        self.cry_interval = 10
+        self.cry_count = {}
         self.SCALE = SCALE
         self.width = WIDTH
         self.height = HEIGHT
@@ -559,9 +586,12 @@ class TurtleLikeSprite(GroundMonsterSprite):
 
 class WhaleSprite(MonsterSprite):
     def __init__(self, whales, SCALE):
-        MonsterSprite.__init__(self, 100, 128)
+        MonsterSprite.__init__(self, 100, 128, 0.001)
 
         self.monsters = whales
+        self.attack_count = {}
+        self.attack_interval = 10 # 10s
+        self.sound = Sound("sources/sounds/whale.mp3")
         self.SCALE = SCALE
         self._init_images()
         self.image = self.left_move_images[0]
@@ -579,15 +609,23 @@ class WhaleSprite(MonsterSprite):
         self.left_move_images = load_images(WHALE_SPRITESHEET, SPRITE_WIDTH, SPRITE_HEIGHT,
                                             (self.SCALE * 20, self.SCALE * 8), self.left_move_images)
         self.right_move_images = invert_images(self.left_move_images)
-
+        self.left_attack_images = self.left_move_images
+        self.right_attack_images = invert_images(self.left_attack_images)
         self.img_indexes = {m.id: 0 for m in self.monsters}
 
     def update(self):
         # TODO move from left to right unless its end of game which will move from right to left
         # and its laser will destroy blocks
         super(WhaleSprite, self).update()
-        pass
 
+        for whale in self.monsters:
+            if not whale.dying and not whale.attacking and self._want_attack():
+                whale.attack()
+                self.sound.play()
+                self.attack_count[whale.id] = time.time()
+
+            if whale.attacking and time.time() - self.attack_count[whale.id] >= self.attack_interval:
+                whale.attacking = False
 
 def load_images(spritesheet, sprite_width, sprite_height, scale, positions):
     return [pygame.transform.scale(
