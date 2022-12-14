@@ -396,7 +396,7 @@ class FeatherSprite(pygame.sprite.Sprite):
 
 
 class BirdLikeSprite(MonsterSprite):
-    def __init__(self, birds, WIDTH, HEIGHT, SCALE, attack_prob=0.05, cry_prob=0.02):
+    def __init__(self, birds, WIDTH, HEIGHT, SCALE, attack_prob=0.05, cry_prob=0.01):
         MonsterSprite.__init__(self, 16, 10, attack_prob, cry_prob)
 
         self.sprite_width = 92

@@ -4,9 +4,10 @@ from pygame.sprite import *
 from pygame.mixer import *
 import random
 
+from models.world import *
 from models.game_objects import Player, BirdLike, Spawner, SpiderLike, Whale, Wave, TurtleLike
 from menu.menu import Menu
-from sprites.sprites import PlayerSprite, BirdLikeSprite, SpiderLikeSprite, WhaleSprite, FeatherSprite, TurtleLikeSprite
+from sprites.sprites import PlayerSprite, BirdLikeSprite, SpiderLikeSprite, WhaleSprite, FeatherSprite, TurtleLikeSprite, BlockSprite
 
 
 class TST(Sprite):
@@ -35,9 +36,12 @@ class TST(Sprite):
 
 
 if __name__ == "__main__":
-    WIDTH = 800
-    HEIGHT = 600
+    WIDTH = 1024
+    HEIGHT = 640
     SCALE = 32
+    blocks_x = int(WIDTH/SCALE)
+    blocks_y = int(HEIGHT/SCALE)
+
     mixer.init()
     music.set_volume(0.5)
     # music.load("sources/sounds/breeze_bay.mp3")
@@ -47,7 +51,7 @@ if __name__ == "__main__":
     pygame.init()
 
     # init screen
-    screen = pygame.display.set_mode((800, 600))
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
     screen.fill((0, 0, 255))
 
     # loading the images
@@ -78,22 +82,27 @@ if __name__ == "__main__":
 
     clock = pygame.time.Clock()
 
-    sound_center = (400, 300)
-
-    mask = pygame.Surface((800, 600))
+    mask = pygame.Surface((WIDTH, HEIGHT))
     mask.set_colorkey((0, 0, 255))
-    #mask.fill(0)
+    mask.fill(0)
 
     lastKey = None
-    radius = 0
-    radius2 = 0
-    radius3 = 0
     waves = []
     menu = Menu()
     opened_menu = False
     hardmode = False
 
+    world = World("easy", 5)
+    world.startWorld()
+    moved = 0
+    chunk_sprites = []
+    for chunk in world.loaded_chunks:
+        if chunk:
+            chunk_sprites.append(BlockSprite(chunk,blocks_x,blocks_y,SCALE))
+            all_sprites.add(chunk_sprites[-1])
+
     while 1:
+        movement = 0
         clock.tick(144)
         for e in event.get():
             if e.type == QUIT:
@@ -115,32 +124,58 @@ if __name__ == "__main__":
             break
 
         player.controls(menu.left_key, menu.right_key, menu.jump_key)
-
+        
         if lastKey:
             if lastKey[player.left_key]:
                 player.command(player.left_key)
-                player_sprite.update()
+                if(world.current_chunk == 0):
+                    pass
+                    #player moves
+                else:
+                    movement = -1
+                    #player doesn't move
             if lastKey[player.right_key]:
                 player.command(player.right_key)
-                player_sprite.update()
-
+                if(world.current_chunk == len(world.world_chunks)):
+                    pass
+                #player moves
+                else:
+                    movement = 1
+                    #player doesn't move
             if lastKey[player.jump_key]:
                 player.command(player.jump_key)
-                player_sprite.update()
             else:
                 player_sprite.can_jump_again()
+            player_sprite.update()
 
         if menu and menu.show:
             menu.mainloop(screen)
         else:
             # create cover surface
-            # mask.fill(0)
+            mask.fill(0)
             if (random.randint(1, 144) == 1):
                 waves.append(Wave(
                     [random.randint(0, 800), random.randint(0, 600)],
                     (random.randint(1, 100) / 100),
                     144,
                     [random.randint(0, 25) / 100, random.randint(25, 30) / 100]))
+            #world interaction
+            moved += movement
+            if int(moved / (SCALE*16)) >= 1:
+                _, added = world.loadNextChunk()
+                if added:
+                    chunk_sprites.append(BlockSprite(added,blocks_x,blocks_y,SCALE))
+                    all_sprites.add(chunk_sprites[-1])
+                moved = 0
+            elif(int(moved / (SCALE*16)) <= -1):
+                _, _ = world.loadPrevChunk()
+                moved = 0
+
+                    
+            world.moveWorld(movement)
+            for sprite in chunk_sprites:
+                sprite.move((-movement,0))
+    
             all_sprites.update()
             all_sprites.draw(screen)
             bird_sprite.update()
@@ -157,11 +192,11 @@ if __name__ == "__main__":
 
             if not hardmode:
                 player_sprite.draw(mask)
-
+            
             # draw transparent circle and update display
             screen.blit(mask, (0, 0))
             for wave in waves:
-                if (wave.checkLimits(800, 600)):
+                if (wave.checkLimits(WIDTH, HEIGHT)):
                     waves.remove(wave)
 
             for wave in waves:
