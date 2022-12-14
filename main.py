@@ -6,7 +6,8 @@ import random
 
 from models.game_objects import Player, BirdLike, Spawner, SpiderLike, Whale, Wave, TurtleLike
 from menu.menu import Menu
-from sprites.sprites import PlayerSprite, BirdLikeSprite, SpiderLikeSprite, WhaleSprite, FeatherSprite, TurtleLikeSprite
+from sprites.sprites import PlayerSprite, BirdLikeSprite, SpiderLikeSprite, WhaleSprite, FeatherSprite, \
+    TurtleLikeSprite, WaveSprite
 
 
 class TST(Sprite):
@@ -54,7 +55,7 @@ if __name__ == "__main__":
     sprite_object = TST(width=WIDTH, height=HEIGHT)
     player = Player()
     player.controls(pygame.K_a, pygame.K_d, pygame.K_SPACE)
-    player_sprite = PlayerSprite(player, [SpiderLikeSprite, BirdLikeSprite, TurtleLikeSprite] ,SCALE)
+    player_sprite = PlayerSprite(player, [SpiderLikeSprite, BirdLikeSprite, TurtleLikeSprite], SCALE)
 
     bird = BirdLike(stop_width=WIDTH, stop_height=HEIGHT)
     spawner = Spawner()
@@ -82,13 +83,13 @@ if __name__ == "__main__":
 
     mask = pygame.Surface((800, 600))
     mask.set_colorkey((0, 0, 255))
-    #mask.fill(0)
+    # mask.fill(0)
 
     lastKey = None
     radius = 0
     radius2 = 0
     radius3 = 0
-    waves = []
+    waves = WaveSprite()
     menu = Menu()
     opened_menu = False
     hardmode = False
@@ -134,13 +135,13 @@ if __name__ == "__main__":
             menu.mainloop(screen)
         else:
             # create cover surface
-            # mask.fill(0)
-            if (random.randint(1, 144) == 1):
-                waves.append(Wave(
-                    [random.randint(0, 800), random.randint(0, 600)],
-                    (random.randint(1, 100) / 100),
-                    144,
-                    [random.randint(0, 25) / 100, random.randint(25, 30) / 100]))
+            mask.fill(0)
+            #if (random.randint(1, 144) == 1):
+            #    waves.append(Wave(
+            #        [random.randint(0, 800), random.randint(0, 600)],
+            #       (random.randint(1, 100) / 100),
+            #        144,
+            #        [random.randint(0, 25) / 100, random.randint(25, 30) / 100]))
             all_sprites.update()
             all_sprites.draw(screen)
             bird_sprite.update()
@@ -161,7 +162,7 @@ if __name__ == "__main__":
             # draw transparent circle and update display
             screen.blit(mask, (0, 0))
             for wave in waves:
-                if (wave.checkLimits(800, 600)):
+                if wave.checkLimits(800, 600):
                     waves.remove(wave)
 
             for wave in waves:
