@@ -4,18 +4,18 @@ from enum import Enum
 import pygame
 
 from models.common import Left, Right, Up, Directions
-from models.fsm import State
+from models.fsm import State, Transition
 
 
 class Event(Enum):
-    WALK = 1,
+    MOVE = 1,
     ATTACK = 2,
     JUMP = 3,
     FAIL = 4,
     DIE = 5
 
 
-class Walk(State):
+class Move(State):
     def __init__(self):
         super().__init__(self.__class__.__name__)
 
@@ -42,24 +42,25 @@ class Jump(State):
         monster.jump()
 
 
-"""
-STATES = [Walk, Attack, RoamWater, Spawn, Dead]
+class Fail(State):
+    def __init__(self):
+        super().__init__(self.__class__.__name__)
 
-TRANSITIONS = {
-    Event.EAT: [Transition(Home, RoamFood), Transition(Spawn, RoamFood)],
-    Event.DRINK: [Transition(Home, RoamWater), Transition(Spawn, RoamWater)],
-    Event.GO_HOME: [
-        Transition(RoamFood, Home),
-        Transition(RoamWater, Home),
-    ],
-    Event.SPAWN: [Transition(Home, Spawn)],
-    Event.DIE: [
-        Transition(RoamFood, Dead),
-        Transition(RoamWater, Dead),
-        Transition(Home, Dead),
-    ],
-}
-"""
+    @classmethod
+    def update(cls, monster):
+        monster.fail()
+
+
+class Dead(State):
+    def __init__(self):
+        super().__init__(self.__class__.__name__)
+
+    @classmethod
+    def update(cls, monster):
+        monster.dead()
+
+
+STATES = [Move, Attack, Jump, Fail, Dead]
 
 
 class Player:
@@ -140,6 +141,15 @@ class Monster:
     USER_WIDTH_OFFSET = 32
     USER_HEIGHT_OFFSET = 32
 
+    TRANSITIONS = {
+        Event.ATTACK: [Transition(Move, Attack)],
+        Event.Move: [Transition(Attack, Move)],
+        Event.DIE: [
+            Transition(Move, Dead),
+            Transition(Attack, Dead),
+        ],
+    }
+
     def __init__(self, start_width=0, stop_width=0, start_height=0,
                  stop_height=0,
                  jump_limit=7,
@@ -165,6 +175,9 @@ class Monster:
         self.cry_prob = cry_prob
         self.id = self._get_id()
         self.spawn()
+
+    def update(self, **kwargs):
+        pass
 
     def want_attack(self):
         return random.random() <= self.attack_prob
@@ -275,12 +288,28 @@ class BirdLike(Monster):
 
 
 class GroundMonster(Monster):
+    TRANSITIONS = {
+        Event.ATTACK: [Transition(Move, Attack)],
+        Event.JUMP: [Transition(Attack, Jump)],
+        Event.FAIL: [Transition(Jump, Fail)],
+        Event.MOVE: [Transition(Fail, Move)],
+        Event.DIE: [
+            Transition(Move, Dead),
+            Transition(Attack, Dead),
+            Transition(Jump, Dead),
+            Transition(Fail, Dead),
+        ],
+    }
+
     def __init__(self, start_width=0, stop_width=0, start_height=0,
                  stop_height=0, jump_limit=7, jump_dist_x=7,
                  jump_dist_y=1, attack_prob=0.05, cry_prob=0.05):
         super(GroundMonster, self).__init__(start_width, stop_width, start_height, stop_height, jump_limit,
                                             jump_dist_x,
                                             jump_dist_y, attack_prob, cry_prob)
+
+    def update(self, player_pos):
+        pass
 
     def spawn(self):
         self.pos = [

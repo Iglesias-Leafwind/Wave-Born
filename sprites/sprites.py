@@ -103,6 +103,10 @@ class PlayerSprite(pygame.sprite.Sprite):
         if self.has_collision_with(x, y) and self.falling and self.rect.y < y:
             return True
 
+    @property
+    def pos(self):
+        return self.rect.x, self.rect.y
+
     def dead(self):
         self.player.dead = True
 
@@ -296,12 +300,15 @@ class MonsterSprite(pygame.sprite.Sprite):
         if self.pos_update_count >= self.pos_update_per_frames:
             for monster in self.monsters:
                 if not monster.dying:
+                    monster.update(player_pos=PlayerSprite.get_or_create().pos)
+                    """
                     if monster.jumping:
                         monster.jump()
                     elif monster.falling:
                         monster.fail()
                     else:
                         monster.move()
+                    """
 
             self.pos_update_count = 0
         else:
