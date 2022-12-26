@@ -231,7 +231,7 @@ class PlayerSprite(pygame.sprite.Sprite):
 class MonsterSprite(pygame.sprite.Sprite):
     _single_ton = None
 
-    def __init__(self, image_update_per_frames=0, pos_update_per_frames=0, attack_prob=0.05, cry_prob=0.05):
+    def __init__(self, image_update_per_frames=0, pos_update_per_frames=0):
         Sprite.__init__(self)
         self.monsters: list
         self.left_move_images: list
@@ -245,8 +245,6 @@ class MonsterSprite(pygame.sprite.Sprite):
         self.pos_update_per_frames = pos_update_per_frames
         self.image_update_count = 0
         self.pos_update_count = 0
-        self.attack_prob = attack_prob
-        self.cry_prob = cry_prob
 
     def _init_images(self):
         raise NotImplemented
@@ -296,12 +294,6 @@ class MonsterSprite(pygame.sprite.Sprite):
         id = monster.id
         if id in self.img_indexes:
             self.img_indexes.pop(id)
-
-    def _want_attack(self):
-        return random.random() <= self.attack_prob
-
-    def _want_cry(self):
-        return random.random() <= self.cry_prob
 
     def update(self):
         if self.pos_update_count >= self.pos_update_per_frames:
@@ -433,8 +425,8 @@ class FeatherSprite(pygame.sprite.Sprite):
 
 
 class BirdLikeSprite(MonsterSprite):
-    def __init__(self, birds, WIDTH, HEIGHT, SCALE, attack_prob=0.05, cry_prob=0.01):
-        MonsterSprite.__init__(self, 16, 10, attack_prob, cry_prob)
+    def __init__(self, birds, WIDTH, HEIGHT, SCALE):
+        MonsterSprite.__init__(self, 16, 10)
 
         self.sprite_width = 92
         self.sprite_height = 96
@@ -471,8 +463,11 @@ class BirdLikeSprite(MonsterSprite):
 
     def _remove_monster(self, bird):
         super(BirdLikeSprite, self)._remove_monster(bird)
-        Sound.pop_sound(self.cry_count[bird.id]['sound'])
-        self.cry_count.pop(bird.id)
+        if bird.id in self.cry_count:
+            cry_sound = self.cry_count[bird.id]['sound']
+            cry_sound.stop()
+            Sound.pop_sound(cry_sound)
+            self.cry_count.pop(bird.id)
 
     def update(self):
         super(BirdLikeSprite, self).update()
@@ -486,7 +481,7 @@ class BirdLikeSprite(MonsterSprite):
                 self._remove_monster(bird)
             else:
                 if not bird.attacking and not bird.dying:
-                    if self._want_attack():
+                    if bird.want_attack():
                         bird.attacking = True
                         self.feather_sprite.add_feather(bird.id,
                                                         Feather(bird.get_center(self.sprite_width, self.sprite_height),
@@ -498,7 +493,7 @@ class BirdLikeSprite(MonsterSprite):
                 'time'] >= self.cry_interval
 
             if finished_crying or bird.id not in self.cry_count:
-                if self._want_cry():
+                if bird.want_cry():
                     if bird.id not in self.cry_count:
                         # first time
                         self.cry_count[bird.id] = {'sound': Sound(self.cry_sound_path),
@@ -547,7 +542,7 @@ class GroundMonsterSprite(MonsterSprite):
             elif monster.attacking and self.img_indexes[monster.id] == len(self.left_attack_images) - 1:
                 monster.attacking = False
                 self.change_monster_state(monster)
-            elif abs(player.rect.y - monster.y) < 32 and abs(player.rect.x - monster.x) < 128 and self._want_attack():
+            elif abs(player.rect.y - monster.y) < 32 and abs(player.rect.x - monster.x) < 128 and monster.want_attack():
                 if not monster.attacking:
                     self.change_monster_state(monster)
                     if player.rect.x < monster.x:
@@ -558,8 +553,8 @@ class GroundMonsterSprite(MonsterSprite):
 
 
 class SpiderLikeSprite(GroundMonsterSprite):
-    def __init__(self, spiders, WIDTH, HEIGHT, SCALE, attack_prob=0.005):
-        MonsterSprite.__init__(self, 32, 10, attack_prob)
+    def __init__(self, spiders, WIDTH, HEIGHT, SCALE):
+        MonsterSprite.__init__(self, 32, 10)
 
         self.monsters = spiders
         self.cry_interval = 10
@@ -607,8 +602,8 @@ class SpiderLikeSprite(GroundMonsterSprite):
 
 
 class TurtleLikeSprite(GroundMonsterSprite):
-    def __init__(self, turtles, WIDTH, HEIGHT, SCALE, attack_prob=0.005, cry_prob=0.02):
-        MonsterSprite.__init__(self, 25, 10, attack_prob, cry_prob)
+    def __init__(self, turtles, WIDTH, HEIGHT, SCALE):
+        MonsterSprite.__init__(self, 25, 10)
 
         self.monsters = turtles
         self.SCALE = SCALE
@@ -650,16 +645,20 @@ class TurtleLikeSprite(GroundMonsterSprite):
 
     def _remove_monster(self, turtle):
         super(TurtleLikeSprite, self)._remove_monster(turtle)
-        Sound.pop_sound(self.sound_count[turtle.id]['step'])
-        Sound.pop_sound(self.sound_count[turtle.id]['cry'])
-        self.sound_count.pop(turtle.id)
+        if turtle.id in self.sound_count:
+            step_sound = self.sound_count[turtle.id]['step']
+            step_sound.stop()
+            Sound.pop_sound(step_sound)
+            cry_sound = self.sound_count[turtle.id]['cry']
+            cry_sound.stop()
+            Sound.pop_sound(cry_sound)
+            self.sound_count.pop(turtle.id)
 
     def update(self):
         super(TurtleLikeSprite, self).update()
         for turtle in self.monsters:
             if turtle.is_dead:
                 self._remove_monster(turtle)
-                self.sound_count[turtle.id]['step'].stop()
                 continue
 
             if turtle.id not in self.sound_count:
@@ -672,7 +671,7 @@ class TurtleLikeSprite(GroundMonsterSprite):
             finished_crying = time.time() - self.sound_count[turtle.id]['time'] >= self.cry_interval
 
             if not turtle.dying and not turtle.attacking:
-                if self._want_cry():
+                if turtle.want_cry():
                     if self.sound_count[turtle.id]['time'] == 1 << 31:
                         # first time
                         self.sound_count[turtle.id]['time'] = time.time()
@@ -701,8 +700,8 @@ class TurtleLikeSprite(GroundMonsterSprite):
 
 
 class WhaleSprite(MonsterSprite):
-    def __init__(self, whales, SCALE, attack_prob=0.001):
-        MonsterSprite.__init__(self, 100, 128, attack_prob)
+    def __init__(self, whales, SCALE):
+        MonsterSprite.__init__(self, 100, 128)
         self.monsters = whales
         self.attack_count = {}
         self.attack_interval = 5  # 10s
@@ -744,7 +743,7 @@ class WhaleSprite(MonsterSprite):
 
             if not whale.dying and not whale.attacking:
                 whale_attack = self.attack_count[whale.id]
-                if self._want_attack():
+                if whale.want_attack():
                     if whale_attack['finished'] == 0 or time.time() - whale_attack['finished'] >= whale_attack['wait']:
                         whale.attack()
                         self.change_monster_state(whale)

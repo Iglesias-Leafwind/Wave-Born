@@ -138,7 +138,7 @@ if __name__ == "__main__":
                     if(world.current_chunk == 0):
                         pass
                         #player moves
-                    elif(world.current_chunk == len(world.world_chunks)):
+                    elif(world.current_chunk == len(world.world_chunks)-1):
                         camera_move = False
                         movement = -1
                     else:
@@ -146,7 +146,7 @@ if __name__ == "__main__":
                         #monsters move with camera
                 if lastKey[player.right_key]:
                     player.command(player.right_key)
-                    if(world.current_chunk == len(world.world_chunks)):
+                    if(world.current_chunk == len(world.world_chunks)-1):
                         pass
                         #player moves
                     elif(world.current_chunk == 0):
