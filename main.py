@@ -5,20 +5,18 @@ from pygame.mixer import *
 import random
 
 from models.world import *
-from models.game_objects import Player, BirdLike, Spawner, SpiderLike, Whale, TurtleLike, Monster
+from models.game_objects import Player, BirdLike, Spawner, SpiderLike, Whale, TurtleLike, Monster, Waves
 from menu.menu import Menu
 
-from sprites.sprites import PlayerSprite, BirdLikeSprite, SpiderLikeSprite, WhaleSprite, \
-    TurtleLikeSprite, WaveSprite, BlockSprite, BackgroundSprite
-
+from sprites.sprites import PlayerSprite, BirdLikeSprite, SpiderLikeSprite, WhaleSprite, BackgroundSprite, \
+    TurtleLikeSprite, BlockSprite, BackgroundSprite
 from models.sound import Sound as sd
-
 if __name__ == "__main__":
     WIDTH = 1024
     HEIGHT = 640
     SCALE = 32
-    blocks_x = int(WIDTH/SCALE)
-    blocks_y = int(HEIGHT/SCALE)
+    blocks_x = int(WIDTH / SCALE)
+    blocks_y = int(HEIGHT / SCALE)
 
     # music.load("sources/sounds/breeze_bay.mp3")
     # music.play(loops=-1)
@@ -40,22 +38,28 @@ if __name__ == "__main__":
         Monster.set_user_pos(player.pos)
         player.controls(pygame.K_a, pygame.K_d, pygame.K_SPACE)
         player_sprite = PlayerSprite(player, [SpiderLikeSprite, BirdLikeSprite, TurtleLikeSprite], SCALE)
+        Player.SPRITE = player_sprite
 
-        bird = BirdLike(stop_width=WIDTH, stop_height=int(HEIGHT * 0.7))
+        bird = BirdLike(width=WIDTH, height=HEIGHT, stop_width=WIDTH, stop_height=HEIGHT // 2)
         spawner = Spawner()
         birds = [spawner.spawn_monster(bird) for _ in range(5)]
         bird_sprite = BirdLikeSprite(birds, WIDTH, HEIGHT, SCALE)
 
-        spider = SpiderLike(start_width=100, stop_width=WIDTH, stop_height=500)
+        spider = SpiderLike(width=WIDTH, height=HEIGHT, start_width=100, stop_width=WIDTH, stop_height=500,
+                            attack_prob=0.01)
         spiders = [spawner.spawn_monster(spider) for _ in range(5)]
         spider_sprite = SpiderLikeSprite(spiders, WIDTH, HEIGHT, SCALE)
+        SpiderLike.SPRITE = spider_sprite
 
-        turtle = TurtleLike(start_width=100, stop_width=WIDTH, stop_height=500)
+        turtle = TurtleLike(width=WIDTH, height=HEIGHT, start_width=100, stop_width=WIDTH, stop_height=500,
+                            attack_prob=0.01)
         turtles = [spawner.spawn_monster(turtle) for _ in range(3)]
         turtle_sprite = TurtleLikeSprite(turtles, WIDTH, HEIGHT, SCALE)
+        TurtleLike.SPRITE = turtle_sprite
 
-        whale = Whale(stop_width=WIDTH, stop_height=HEIGHT)
+        whale = Whale(width=WIDTH, height=HEIGHT, stop_width=WIDTH, stop_height=HEIGHT, attack_prob=0.1)
         whale_sprite = WhaleSprite([whale], SCALE)
+        Whale.SPRITE = whale_sprite
 
         all_sprites = sprite.Group()
         all_sprites.add(sprite_object)
@@ -68,7 +72,7 @@ if __name__ == "__main__":
         # mask.fill(0)
 
         lastKey = None
-        waves = WaveSprite()
+        waves = Waves()
 
         menu = Menu()
         opened_menu = False
@@ -80,7 +84,7 @@ if __name__ == "__main__":
         chunk_sprites = []
         for chunk in world.loaded_chunks:
             if chunk:
-                chunk_sprites.append(BlockSprite(chunk,blocks_x,blocks_y,SCALE))
+                chunk_sprites.append(BlockSprite(chunk, blocks_x, blocks_y, SCALE))
                 all_sprites.add(chunk_sprites[-1])
 
         while 1:
@@ -111,26 +115,26 @@ if __name__ == "__main__":
             if lastKey:
                 if lastKey[player.left_key]:
                     player.command(player.left_key)
-                    if(world.current_chunk == 0):
+                    if (world.current_chunk == 0):
                         pass
-                        #player moves
-                    elif(world.current_chunk == len(world.world_chunks)-1):
+                        # player moves
+                    elif (world.current_chunk == len(world.world_chunks) - 1):
                         camera_move = False
                         movement = -1
                     else:
                         movement = -1
-                        #monsters move with camera
+                        # monsters move with camera
                 if lastKey[player.right_key]:
                     player.command(player.right_key)
-                    if(world.current_chunk == len(world.world_chunks)-1):
+                    if (world.current_chunk == len(world.world_chunks) - 1):
                         pass
-                        #player moves
-                    elif(world.current_chunk == 0):
+                        # player moves
+                    elif (world.current_chunk == 0):
                         camera_move = False
                         movement = 1
                     else:
                         movement = 1
-                        #monsters move with camera
+                        # monsters move with camera
                 if lastKey[player.jump_key]:
                     if(not player_sprite.jumping and not player_sprite.falling):
                         player.command(player.jump_key)
@@ -142,39 +146,38 @@ if __name__ == "__main__":
                 menu.mainloop(screen)
             else:
                 # create cover surface
-                mask.fill(0)
+                # mask.fill(0)
 
-                #if (random.randint(1, 144) == 1):
+                # if (random.randint(1, 144) == 1):
                 #    waves.append(Wave(
                 #        [random.randint(0, 800), random.randint(0, 600)],
                 #       (random.randint(1, 100) / 100),
                 #        144,
                 #        [random.randint(0, 25) / 100, random.randint(25, 30) / 100]))
-                #world interaction
+                # world interaction
                 moved += movement
-                if int(moved / (SCALE*16)) >= 1:
+                if int(moved / (SCALE * 16)) >= 1:
                     _, added = world.loadNextChunk()
                     if added:
-                        chunk_sprites.append(BlockSprite(added,blocks_x,blocks_y,SCALE))
+                        chunk_sprites.append(BlockSprite(added, blocks_x, blocks_y, SCALE))
                         all_sprites.add(chunk_sprites[-1])
                         try:
                             all_sprites.add(added.end_sprite)
                         except:
                             pass
                     moved = 0
-                elif(int(moved / (SCALE*16)) <= -1):
+                elif (int(moved / (SCALE * 16)) <= -1):
                     _, _ = world.loadPrevChunk()
                     moved = 0
-                if(camera_move):
-                    #world movement
+                if (camera_move):
+                    # world movement
                     world.moveWorld(movement)
                     for chunk_sprite in chunk_sprites:
-                        chunk_sprite.move((-movement,0))
-                    
-                    #counter entity movement with world
+                        chunk_sprite.move((-movement, 0))
+
+                    # counter entity movement with world
                     player_sprite.update_camera_movement(movement)
-            
-                
+
                 all_sprites.update()
                 all_sprites.draw(screen)
                 bird_sprite.update()
@@ -203,7 +206,7 @@ if __name__ == "__main__":
                     # print(
                     #    f"------------------------------------------\nR: {wave.radius}\nT: {wave.thicc}\nV: {wave.velocity}\nS: {wave.sound_interval}\n---------------------------")
 
-                #if player.dead:
+                # if player.dead:
                 #    menu.game_over()
                 #    menu.mainloop(screen)
                 #    sd.stop_all_sounds()
