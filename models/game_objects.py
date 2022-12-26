@@ -1,10 +1,11 @@
 import random
+import time
 from enum import Enum
 
 import pygame
 
 from models.common import Left, Right, Up, Directions
-from models.fsm import State, Transition
+from models.fsm import State, Transition, FSM
 
 
 class Event(Enum):
@@ -12,7 +13,8 @@ class Event(Enum):
     ATTACK = 2,
     JUMP = 3,
     FAIL = 4,
-    DIE = 5
+    DYING = 5,
+    DEAD = 6
 
 
 class Move(State):
@@ -23,6 +25,10 @@ class Move(State):
     def update(cls, monster):
         monster.move()
 
+    @classmethod
+    def enter(cls, monster):
+        monster.attacking = False
+
 
 class Attack(State):
     def __init__(self):
@@ -31,6 +37,8 @@ class Attack(State):
     @classmethod
     def enter(cls, monster):
         monster.attack()
+        if not isinstance(monster, BirdLike):
+            monster.SPRITE.change_monster_state(monster)
 
 
 class Jump(State):
@@ -51,6 +59,15 @@ class Fail(State):
         monster.fail()
 
 
+class Dying(State):
+    def __init__(self):
+        super().__init__(self.__class__.__name__)
+
+    @classmethod
+    def enter(cls, monster):
+        monster.is_dead = True
+
+
 class Dead(State):
     def __init__(self):
         super().__init__(self.__class__.__name__)
@@ -64,6 +81,8 @@ STATES = [Move, Attack, Jump, Fail, Dead]
 
 
 class Player:
+    SPRITE = None
+
     def __init__(self, x, y):
         self.direction = None
         self.dead = False
@@ -116,7 +135,6 @@ class Player:
 class Wave:
     def __init__(self, center, velocity, clockticks, sound_interval):
         # sound_interval = (sound_start,sound_end)
-        clockticks = 3*clockticks/4
         self.radius = -velocity * clockticks * sound_interval[0] if sound_interval[0] > 0 else 0
         self.x = center[0]
         self.y = center[1]
@@ -144,20 +162,23 @@ class Monster:
 
     TRANSITIONS = {
         Event.ATTACK: [Transition(Move, Attack)],
-        Event.Move: [Transition(Attack, Move)],
-        Event.DIE: [
+        Event.MOVE: [Transition(Attack, Move)],
+        Event.DEAD: [
             Transition(Move, Dead),
             Transition(Attack, Dead),
         ],
     }
+    SPRITE = None
 
-    def __init__(self, start_width=0, stop_width=0, start_height=0,
+    def __init__(self, width, height, start_width=0, stop_width=0, start_height=0,
                  stop_height=0,
                  jump_limit=7,
                  jump_dist_x=7,
                  jump_dist_y=1,
                  attack_prob=0.05,
                  cry_prob=0.05):
+        self.width = width
+        self.height = height
         self.start_width = start_width
         self.stop_width = stop_width
         self.start_height = start_height
@@ -246,6 +267,13 @@ class Monster:
                 1] - Monster.USER_HEIGHT_OFFSET:
                 return self.pos
 
+    def out_of_world(self):
+        return self.x < 0 or self.x > self.width or self.y > self.height or self.y < 0
+
+    @classmethod
+    def get_sprite(cls):
+        return cls.SPRITE
+
     @property
     def x(self):
         return self.pos[0]
@@ -273,14 +301,33 @@ class Feather:
 
 
 class BirdLike(Monster):
-    def __init__(self, start_width=0, stop_width=0, start_height=0,
+    def __init__(self, width, height, start_width=0, stop_width=0, start_height=0,
                  stop_height=0, jump_limit=7, jump_dist_x=7,
                  jump_dist_y=1, attack_prob=0.05, cry_prob=0.01):
-        super().__init__(start_width, stop_width, start_height, stop_height, jump_limit, jump_dist_x, jump_dist_y,
+        super().__init__(width, height, start_width, stop_width, start_height, stop_height, jump_limit, jump_dist_x,
+                         jump_dist_y,
                          attack_prob, cry_prob)
+        self.fsm = FSM(STATES, Monster.TRANSITIONS)
+
+    def dead(self):
+        self.is_dead = True
+
+    def update(self, player_pos):
+        event = None
+        player = Player.SPRITE
+        if player.stepped_on(self.x, self.y) or self.out_of_world():
+            event = Event.DEAD
+        elif self.fsm.current == Attack:
+            event = Event.MOVE
+        elif self.fsm.current == Move and self.want_attack():
+            event = Event.ATTACK
+
+        self.fsm.update(event, self)
 
     def clone(self) -> Monster:
-        return BirdLike(self.start_width, self.stop_width, self.start_height, self.stop_height)
+        return BirdLike(self.width, self.height, self.start_width, self.stop_width, self.start_height, self.stop_height,
+                        self.jump_limit,
+                        self.jump_dist_x, self.jump_dist_y, self.attack_prob, self.cry_prob)
 
     def get_center(self, width, height):
         if self.direction == 1:
@@ -294,23 +341,47 @@ class GroundMonster(Monster):
         Event.JUMP: [Transition(Attack, Jump)],
         Event.FAIL: [Transition(Jump, Fail)],
         Event.MOVE: [Transition(Fail, Move)],
-        Event.DIE: [
+        Event.DYING: [
             Transition(Move, Dead),
             Transition(Attack, Dead),
             Transition(Jump, Dead),
             Transition(Fail, Dead),
         ],
+        Event.DEAD: [Transition(Dying, Dead)]
     }
 
-    def __init__(self, start_width=0, stop_width=0, start_height=0,
+    def __init__(self, width, height, start_width=0, stop_width=0, start_height=0,
                  stop_height=0, jump_limit=7, jump_dist_x=7,
                  jump_dist_y=1, attack_prob=0.05, cry_prob=0.05):
-        super(GroundMonster, self).__init__(start_width, stop_width, start_height, stop_height, jump_limit,
+        super(GroundMonster, self).__init__(width, height, start_width, stop_width, start_height, stop_height,
+                                            jump_limit,
                                             jump_dist_x,
                                             jump_dist_y, attack_prob, cry_prob)
+        self.fsm = FSM(STATES, GroundMonster.TRANSITIONS)
 
     def update(self, player_pos):
-        pass
+        event = None
+        player = Player.SPRITE
+        if player.stepped_on(self.x, self.y):
+            event = Event.DYING
+        elif self.out_of_world():
+            event = Event.DEAD
+        elif self.fsm.current == Jump and self.falling:
+            event = Event.FAIL
+        elif self.fsm.current == Fail and not self.falling:
+            event = Event.MOVE
+        elif self.fsm.current == Attack:
+            event = Event.JUMP
+        elif self.fsm.current == Move and \
+                abs(player.y - self.y) < 32 and abs(player.x - self.x) < 128 and self.want_attack():
+            if not self.attacking:
+                if player.rect.x < self.x:
+                    self.direction = -1
+                else:
+                    self.direction = 1
+                event = Event.ATTACK
+
+        self.fsm.update(event, self)
 
     def spawn(self):
         self.pos = [
@@ -345,40 +416,89 @@ class GroundMonster(Monster):
         self.falling = False
         self.jump_count = 0
 
-    def clone(self) -> Monster:
-        return GroundMonster(self.start_width, self.stop_width, self.start_height, self.stop_height)
-
 
 class SpiderLike(GroundMonster):
-    def __init__(self, start_width=0, stop_width=0, start_height=0,
+    SPRITE = None
+
+    def __init__(self, width, height, start_width=0, stop_width=0, start_height=0,
                  stop_height=0,
                  jump_limit=7,
                  jump_dist_x=7,
                  jump_dist_y=1,
                  attack_prob=0.005):
-        super().__init__(start_width, stop_width, start_height, stop_height, jump_limit, jump_dist_x, jump_dist_y,
+        super().__init__(width, height, start_width, stop_width, start_height, stop_height, jump_limit, jump_dist_x,
+                         jump_dist_y,
                          attack_prob=attack_prob)
+
+    def clone(self) -> Monster:
+        return SpiderLike(self.width, self.height, self.start_width, self.stop_width, self.start_height,
+                          self.stop_height, self.jump_limit,
+                          self.jump_dist_x, self.jump_dist_y, self.attack_prob)
 
 
 class TurtleLike(GroundMonster):
-    def __init__(self, start_width=0, stop_width=0, start_height=0,
+    SPRITE = None
+
+    def __init__(self, width, height, start_width=0, stop_width=0, start_height=0,
                  stop_height=0,
                  jump_limit=3,
                  jump_dist_x=7,
                  jump_dist_y=1, attack_prob=0.005, cry_prob=0.02):
-        super().__init__(start_width, stop_width, start_height, stop_height, jump_limit, jump_dist_x, jump_dist_y,
+        super().__init__(width, height, start_width, stop_width, start_height, stop_height, jump_limit, jump_dist_x,
+                         jump_dist_y,
                          attack_prob, cry_prob)
+
+    def clone(self) -> Monster:
+        return TurtleLike(self.width, self.height, self.start_width, self.stop_width, self.start_height,
+                          self.stop_height, self.jump_limit,
+                          self.jump_dist_x, self.jump_dist_y, self.attack_prob, self.cry_prob)
 
 
 class Whale(Monster):
-    def __init__(self, start_width=0, stop_width=0, start_height=0,
+    SPRITE = None
+
+    def __init__(self, width, height, start_width=0, stop_width=0, start_height=0,
                  stop_height=0,
+                 attack_interval=5,
                  jump_limit=7,
                  jump_dist_x=7,
-                 jump_dist_y=1, attack_prob=0.01):
-        super().__init__(start_width, stop_width, start_height, stop_height, jump_limit, jump_dist_x, jump_dist_y,
+                 jump_dist_y=1, attack_prob=0.05):
+        super().__init__(width, height, start_width, stop_width, start_height, stop_height, jump_limit, jump_dist_x,
+                         jump_dist_y,
                          attack_prob)
+        self.attack_interval = attack_interval
         self.direction = -1
+        self.fsm = FSM(STATES, Monster.TRANSITIONS)
+        self.attack_info = {'time': 1 << 31,
+                            'finished': 0,
+                            'wave': None,
+                            'wait': random.randint(1, self.attack_interval)}
+
+    def attack(self):
+        if not self.attacking:
+            whale_attack = self.attack_info
+            super(Whale, self).attack()
+            if whale_attack['finished'] == 0 or time.time() - whale_attack['finished'] >= whale_attack['wait']:
+                whale_attack['time'] = time.time()
+                wave = Wave([self.x + (self.x / 4), 3.5 * self.y], 1, 144,
+                            [0, whale_attack['wait'] / 2])
+                Waves.get_or_create().add_wave(wave)
+
+    def update(self, player_pos):
+        event = None
+        if self.out_of_world():
+            event = Event.DEAD
+        elif self.fsm.current == Attack and time.time() - self.attack_info['time'] >= self.attack_interval:
+            event = Event.MOVE
+            self.attacking = False
+            Whale.SPRITE.change_monster_state(self)
+        elif self.fsm.current == Move and self.want_attack():
+            event = Event.ATTACK
+
+        self.fsm.update(event, self)
+
+    def dead(self):
+        self.is_dead = True
 
     def spawn(self):
         self.pos = [
@@ -388,7 +508,46 @@ class Whale(Monster):
         return self.pos
 
     def clone(self) -> Monster:
-        return Whale(self.start_width, self.stop_width, self.start_height, self.stop_height)
+        return Whale(self.width, self.height, start_width=0, stop_width=0, start_height=0,
+                     stop_height=0,
+                     attack_interval=5,
+                     jump_limit=7,
+                     jump_dist_x=7,
+                     jump_dist_y=1, attack_prob=0.01)
+
+
+class Waves:
+    _singleton = None
+
+    def __init__(self, waves=None):
+        if waves is None:
+            waves = []
+        self.waves = waves
+        self._i = 0
+        Waves._singleton = self
+
+    def add_wave(self, wave):
+        self.waves.append(wave)
+
+    def remove(self, wave):
+        self.waves.remove(wave)
+
+    @staticmethod
+    def get_or_create(**kwargs):
+        if Waves._singleton:
+            return Waves._singleton
+        return Waves(**kwargs)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self._i < len(self.waves):
+            i = self._i
+            self._i += 1
+            return self.waves[i]
+        self._i = 0
+        raise StopIteration()
 
 
 class Spawner:

@@ -29,7 +29,7 @@ class Transition:
 
 
 class FSM:
-    def __init__(self, states: list[State], transitions: dict[Transition]) -> None:
+    def __init__(self, states: list[State], transitions: dict[State, list[Transition]]) -> None:
         self._states = states
         self._transitions = transitions
 

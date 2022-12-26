@@ -5,7 +5,7 @@ import pygame
 from pygame.sprite import Sprite
 
 from models.common import Directions
-from models.game_objects import Feather, Wave
+from models.game_objects import Feather, Wave, SpiderLike, TurtleLike, Waves
 from models.sound import Sound
 from sprites.spritesheet import SpriteSheet
 
@@ -107,6 +107,14 @@ class PlayerSprite(pygame.sprite.Sprite):
     def pos(self):
         return self.rect.x, self.rect.y
 
+    @property
+    def x(self):
+        return self.rect.x
+
+    @property
+    def y(self):
+        return self.rect.y
+
     def dead(self):
         self.player.dead = True
 
@@ -167,9 +175,9 @@ class PlayerSprite(pygame.sprite.Sprite):
             self.jumping = False
             self.falling = True
 
-    def update_camera_movement(self,movement):
+    def update_camera_movement(self, movement):
         self.rect.x -= movement
-    
+
     def update(self):
         if self.player.direction:
             move_images = None
@@ -262,9 +270,6 @@ class MonsterSprite(pygame.sprite.Sprite):
             return cls._single_ton
         return cls(**kwargs)
 
-    def _out_of_world(self, pos, width, height):
-        return pos[0] < 0 or pos[0] > width or pos[1] > height
-
     def _next_image(self, monster):
         id = monster.id
         indexes = self.img_indexes
@@ -326,40 +331,6 @@ class MonsterSprite(pygame.sprite.Sprite):
             )
         if self.image_update_count >= self.image_update_per_frames:
             self.image_update_count = 0
-
-
-class WaveSprite:
-    _singleton = None
-
-    def __init__(self, waves=None):
-        if waves is None:
-            waves = []
-        self.waves = waves
-        self._i = 0
-        WaveSprite._singleton = self
-
-    def add_wave(self, wave):
-        self.waves.append(wave)
-
-    def remove(self, wave):
-        self.waves.remove(wave)
-
-    @staticmethod
-    def get_or_create(**kwargs):
-        if WaveSprite._singleton:
-            return WaveSprite._singleton
-        return WaveSprite(**kwargs)
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        if self._i < len(self.waves):
-            i = self._i
-            self._i += 1
-            return self.waves[i]
-        self._i = 0
-        raise StopIteration()
 
 
 class FeatherSprite(pygame.sprite.Sprite):
@@ -480,21 +451,14 @@ class BirdLikeSprite(MonsterSprite):
         super(BirdLikeSprite, self).update()
 
         for bird in self.monsters:
-            if self._out_of_world(bird.pos, self.width, self.height):
+            if bird.is_dead:
                 self._remove_monster(bird)
                 continue
-            elif bird.dying and self.img_indexes[bird.id] == len(self.left_dead_images) - 1:
-                bird.is_dead = True
-                self._remove_monster(bird)
             else:
-                if not bird.attacking and not bird.dying:
-                    if bird.want_attack():
-                        bird.attacking = True
-                        self.feather_sprite.add_feather(bird.id,
-                                                        Feather(bird.get_center(self.sprite_width, self.sprite_height),
-                                                                bird.direction))
-                else:
-                    bird.attacking = self.feather_sprite.feather_flying(bird.id)
+                if bird.attacking and not self.feather_sprite.feather_flying(bird.id):
+                    self.feather_sprite.add_feather(bird.id,
+                                                    Feather(bird.get_center(self.sprite_width, self.sprite_height),
+                                                            bird.direction))
 
             finished_crying = bird.id in self.cry_count and time.time() - self.cry_count[bird.id][
                 'time'] >= self.cry_interval
@@ -511,7 +475,7 @@ class BirdLikeSprite(MonsterSprite):
 
                         wave = Wave([bird.x, bird.y], random.randint(5, 10), 144,
                                     [0, self.cry_count[bird.id]['wait'] / 10])
-                        WaveSprite.get_or_create().add_wave(wave)
+                        Waves.get_or_create().add_wave(wave)
 
                     elif finished_crying:
                         bird_cry = self.cry_count[bird.id]
@@ -524,7 +488,7 @@ class BirdLikeSprite(MonsterSprite):
                             # set finished to 0 and cry again
                             wave = Wave([bird.x, bird.y], random.randint(5, 10), 144,
                                         [0, bird_cry['wait'] / 10])
-                            WaveSprite.get_or_create().add_wave(wave)
+                            Waves.get_or_create().add_wave(wave)
                             bird_cry['time'] = time.time()
                             bird_cry['sound'].play()
                             bird_cry['finished'] = 0
@@ -539,31 +503,21 @@ class BirdLikeSprite(MonsterSprite):
 class GroundMonsterSprite(MonsterSprite):
     def update(self):
         super(GroundMonsterSprite, self).update()
-        player = PlayerSprite.get_or_create()
         for monster in self.monsters:
-            if self._out_of_world(monster.pos, self.width, self.height):
-                monster.is_dead = True
+            if monster.is_dead:
+                continue
             elif monster.dying:
                 if self.img_indexes[monster.id] == len(self.left_dead_images) - 1:
                     monster.is_dead = True
             elif monster.attacking and self.img_indexes[monster.id] == len(self.left_attack_images) - 1:
-                monster.attacking = False
                 self.change_monster_state(monster)
-            elif abs(player.rect.y - monster.y) < 32 and abs(player.rect.x - monster.x) < 128 and monster.want_attack():
-                if not monster.attacking:
-                    self.change_monster_state(monster)
-                    if player.rect.x < monster.x:
-                        monster.direction = -1
-                    else:
-                        monster.direction = 1
-                    monster.attack()
 
 
 class SpiderLikeSprite(GroundMonsterSprite):
     def __init__(self, spiders, WIDTH, HEIGHT, SCALE):
         MonsterSprite.__init__(self, 32, 10)
 
-        self.monsters = spiders
+        self.monsters: list[SpiderLike] = spiders
         self.cry_interval = 10
         self.cry_count = {}
         self.SCALE = SCALE
@@ -612,7 +566,7 @@ class TurtleLikeSprite(GroundMonsterSprite):
     def __init__(self, turtles, WIDTH, HEIGHT, SCALE):
         MonsterSprite.__init__(self, 25, 10)
 
-        self.monsters = turtles
+        self.monsters: list[TurtleLike] = turtles
         self.SCALE = SCALE
         self.width = WIDTH
         self.height = HEIGHT
@@ -683,8 +637,8 @@ class TurtleLikeSprite(GroundMonsterSprite):
                         # first time
                         self.sound_count[turtle.id]['time'] = time.time()
                         self.sound_count[turtle.id]['cry'].play()
-                        WaveSprite.get_or_create().add_wave(Wave([turtle.x, turtle.y], random.randint(1, 5), 144,
-                                                                 [0, self.sound_count[turtle.id]['wait'] / 5]))
+                        Waves.get_or_create().add_wave(Wave([turtle.x, turtle.y], random.randint(1, 5), 144,
+                                                            [0, self.sound_count[turtle.id]['wait'] / 5]))
                     elif finished_crying:
                         turtle_cry = self.sound_count[turtle.id]
                         if turtle_cry['finished'] == 0:
@@ -696,8 +650,8 @@ class TurtleLikeSprite(GroundMonsterSprite):
                             # set finished to 0 and cry again
                             turtle_cry['time'] = time.time()
                             turtle_cry['cry'].play()
-                            WaveSprite.get_or_create().add_wave(Wave([turtle.x, turtle.y], random.randint(1, 5), 144,
-                                                                     [0, turtle_cry['wait'] / 5]))
+                            Waves.get_or_create().add_wave(Wave([turtle.x, turtle.y], random.randint(1, 5), 144,
+                                                                [0, turtle_cry['wait'] / 5]))
                             turtle_cry['finished'] = 0
 
             if turtle.dying or turtle.attacking:
@@ -712,7 +666,7 @@ class WhaleSprite(MonsterSprite):
         self.monsters = whales
         self.attack_count = {}
         self.attack_interval = 5  # 10s
-        self.sound = Sound("sources/sounds/whale.mp3")
+        self.cry_sound_path = "sources/sounds/whale.mp3"
         self.SCALE = SCALE
         self._init_images()
         self.image = self.left_move_images[0]
@@ -743,27 +697,13 @@ class WhaleSprite(MonsterSprite):
 
         for whale in self.monsters:
             if whale.id not in self.attack_count:
-                self.attack_count[whale.id] = {'time': 1 << 31,
-                                               'finished': 0,
-                                               'wave': None,
-                                               'wait': random.randint(1, self.attack_interval)}
-
-            if not whale.dying and not whale.attacking:
-                whale_attack = self.attack_count[whale.id]
-                if whale.want_attack():
-                    if whale_attack['finished'] == 0 or time.time() - whale_attack['finished'] >= whale_attack['wait']:
-                        whale.attack()
-                        self.change_monster_state(whale)
-                        self.sound.play()
-                        whale_attack['time'] = time.time()
-                        wave = Wave([whale.x + (whale.x/4), 3.5*whale.y], 1, 144,
-                                    [0, whale_attack['wait'] / 2])
-                        WaveSprite.get_or_create().add_wave(wave)
-
-            if whale.attacking and time.time() - self.attack_count[whale.id]['time'] >= self.attack_interval:
-                whale.attacking = False
-                self.change_monster_state(whale)
-                self.attack_count[whale.id]['finished'] = time.time()
+                self.attack_count[whale.id] = {'sound': Sound(self.cry_sound_path), 'during_attack': False}
+            attack_count = self.attack_count[whale.id]
+            if whale.attacking and not attack_count['during_attack']:
+                attack_count['sound'].play()
+                attack_count['during_attack'] = True
+            else:
+                attack_count['during_attack'] = False
 
 
 def load_images(spritesheet, sprite_width, sprite_height, scale, positions):
