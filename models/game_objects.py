@@ -1,8 +1,65 @@
 import random
+from enum import Enum
 
 import pygame
 
 from models.common import Left, Right, Up, Directions
+from models.fsm import State
+
+
+class Event(Enum):
+    WALK = 1,
+    ATTACK = 2,
+    JUMP = 3,
+    FAIL = 4,
+    DIE = 5
+
+
+class Walk(State):
+    def __init__(self):
+        super().__init__(self.__class__.__name__)
+
+    @classmethod
+    def update(cls, monster):
+        monster.move()
+
+
+class Attack(State):
+    def __init__(self):
+        super().__init__(self.__class__.__name__)
+
+    @classmethod
+    def enter(cls, monster):
+        monster.attack()
+
+
+class Jump(State):
+    def __init__(self):
+        super().__init__(self.__class__.__name__)
+
+    @classmethod
+    def update(cls, monster):
+        monster.jump()
+
+
+"""
+STATES = [Walk, Attack, RoamWater, Spawn, Dead]
+
+TRANSITIONS = {
+    Event.EAT: [Transition(Home, RoamFood), Transition(Spawn, RoamFood)],
+    Event.DRINK: [Transition(Home, RoamWater), Transition(Spawn, RoamWater)],
+    Event.GO_HOME: [
+        Transition(RoamFood, Home),
+        Transition(RoamWater, Home),
+    ],
+    Event.SPAWN: [Transition(Home, Spawn)],
+    Event.DIE: [
+        Transition(RoamFood, Dead),
+        Transition(RoamWater, Dead),
+        Transition(Home, Dead),
+    ],
+}
+"""
 
 
 class Player:
@@ -25,6 +82,7 @@ class Player:
         """Add one piece, pop one out."""
         if direction:
             self.direction = direction
+
     @property
     def x(self):
         return self.pos[0]
@@ -86,7 +144,9 @@ class Monster:
                  stop_height=0,
                  jump_limit=7,
                  jump_dist_x=7,
-                 jump_dist_y=1):
+                 jump_dist_y=1,
+                 attack_prob=0.05,
+                 cry_prob=0.05):
         self.start_width = start_width
         self.stop_width = stop_width
         self.start_height = start_height
@@ -101,8 +161,16 @@ class Monster:
         self.jump_dist_x = jump_dist_x
         self.jump_dist_y = jump_dist_y
         self.falling = False  # is falling
+        self.attack_prob = attack_prob
+        self.cry_prob = cry_prob
         self.id = self._get_id()
         self.spawn()
+
+    def want_attack(self):
+        return random.random() <= self.attack_prob
+
+    def want_cry(self):
+        return random.random() <= self.cry_prob
 
     @classmethod
     def set_user_pos(cls, pos, width_offset=32, height_offset=32):
@@ -158,8 +226,10 @@ class Monster:
                 random.randrange(self.start_width, self.stop_width),
                 random.randrange(self.start_height, self.stop_height),
             ]
-            if self.x >= Monster.USER_POS[0] + Monster.USER_WIDTH_OFFSET or self.x <= Monster.USER_POS[0] - Monster.USER_WIDTH_OFFSET\
-                    or self.y <= Monster.USER_POS[1] + Monster.USER_HEIGHT_OFFSET or self.y >= Monster.USER_POS[1] - Monster.USER_HEIGHT_OFFSET:
+            if self.x >= Monster.USER_POS[0] + Monster.USER_WIDTH_OFFSET or self.x <= Monster.USER_POS[
+                0] - Monster.USER_WIDTH_OFFSET \
+                    or self.y <= Monster.USER_POS[1] + Monster.USER_HEIGHT_OFFSET or self.y >= Monster.USER_POS[
+                1] - Monster.USER_HEIGHT_OFFSET:
                 return self.pos
 
     @property
@@ -190,12 +260,10 @@ class Feather:
 
 class BirdLike(Monster):
     def __init__(self, start_width=0, stop_width=0, start_height=0,
-                 stop_height=0,
-                 jump_limit=7,
-                 jump_dist_x=7,
-                 jump_dist_y=1):
-        super().__init__(start_width, stop_width, start_height, stop_height, jump_limit, jump_dist_x, jump_dist_y)
-
+                 stop_height=0, jump_limit=7, jump_dist_x=7,
+                 jump_dist_y=1, attack_prob=0.05, cry_prob=0.01):
+        super().__init__(start_width, stop_width, start_height, stop_height, jump_limit, jump_dist_x, jump_dist_y,
+                         attack_prob, cry_prob)
 
     def clone(self) -> Monster:
         return BirdLike(self.start_width, self.stop_width, self.start_height, self.stop_height)
@@ -208,11 +276,11 @@ class BirdLike(Monster):
 
 class GroundMonster(Monster):
     def __init__(self, start_width=0, stop_width=0, start_height=0,
-                 stop_height=0,
-                 jump_limit=7,
-                 jump_dist_x=7,
-                 jump_dist_y=1):
-        super(GroundMonster, self).__init__(start_width, stop_width, start_height, stop_height, jump_limit, jump_dist_x, jump_dist_y)
+                 stop_height=0, jump_limit=7, jump_dist_x=7,
+                 jump_dist_y=1, attack_prob=0.05, cry_prob=0.05):
+        super(GroundMonster, self).__init__(start_width, stop_width, start_height, stop_height, jump_limit,
+                                            jump_dist_x,
+                                            jump_dist_y, attack_prob, cry_prob)
 
     def spawn(self):
         self.pos = [
@@ -256,8 +324,10 @@ class SpiderLike(GroundMonster):
                  stop_height=0,
                  jump_limit=7,
                  jump_dist_x=7,
-                 jump_dist_y=1):
-        super().__init__(start_width, stop_width, start_height, stop_height, jump_limit, jump_dist_x, jump_dist_y)
+                 jump_dist_y=1,
+                 attack_prob=0.005):
+        super().__init__(start_width, stop_width, start_height, stop_height, jump_limit, jump_dist_x, jump_dist_y,
+                         attack_prob=attack_prob)
 
 
 class TurtleLike(GroundMonster):
@@ -265,8 +335,9 @@ class TurtleLike(GroundMonster):
                  stop_height=0,
                  jump_limit=3,
                  jump_dist_x=7,
-                 jump_dist_y=1):
-        super().__init__(start_width, stop_width, start_height, stop_height, jump_limit, jump_dist_x, jump_dist_y)
+                 jump_dist_y=1, attack_prob=0.005, cry_prob=0.02):
+        super().__init__(start_width, stop_width, start_height, stop_height, jump_limit, jump_dist_x, jump_dist_y,
+                         attack_prob, cry_prob)
 
 
 class Whale(Monster):
@@ -274,8 +345,9 @@ class Whale(Monster):
                  stop_height=0,
                  jump_limit=7,
                  jump_dist_x=7,
-                 jump_dist_y=1):
-        super().__init__(start_width, stop_width, start_height, stop_height, jump_limit, jump_dist_x, jump_dist_y)
+                 jump_dist_y=1, attack_prob=0.01):
+        super().__init__(start_width, stop_width, start_height, stop_height, jump_limit, jump_dist_x, jump_dist_y,
+                         attack_prob)
         self.direction = -1
 
     def spawn(self):

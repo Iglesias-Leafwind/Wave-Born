@@ -74,7 +74,7 @@ if __name__ == "__main__":
         spiders = [spawner.spawn_monster(spider) for _ in range(5)]
         spider_sprite = SpiderLikeSprite(spiders, WIDTH, HEIGHT, SCALE)
 
-        turtle = TurtleLike(start_width=100, stop_width=WIDTH, stop_height=500)
+        turtle = TurtleLike(start_width=200, stop_width=WIDTH, stop_height=500)
         turtles = [spawner.spawn_monster(turtle) for _ in range(3)]
         turtle_sprite = TurtleLikeSprite(turtles, WIDTH, HEIGHT, SCALE)
 
@@ -157,7 +157,7 @@ if __name__ == "__main__":
                 menu.mainloop(screen)
             else:
                 # create cover surface
-                mask.fill(0)
+                #  mask.fill(0)
 
                 #if (random.randint(1, 144) == 1):
                 #    waves.append(Wave(
