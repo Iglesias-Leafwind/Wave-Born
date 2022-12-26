@@ -5,11 +5,11 @@ from pygame.mixer import *
 import random
 
 from models.world import *
-from models.game_objects import Player, BirdLike, Spawner, SpiderLike, Whale, TurtleLike, Monster
+from models.game_objects import Player, BirdLike, Spawner, SpiderLike, Whale, TurtleLike, Monster, Waves
 from menu.menu import Menu
 
-from sprites.sprites import PlayerSprite, BirdLikeSprite, SpiderLikeSprite, WhaleSprite, \
-    TurtleLikeSprite, Waves, BlockSprite
+from sprites.sprites import PlayerSprite, BirdLikeSprite, SpiderLikeSprite, WhaleSprite, BackgroundSprite, \
+    TurtleLikeSprite, BlockSprite
 from models.sound import Sound as sd
 
 
@@ -37,6 +37,7 @@ class TST(Sprite):
         x, y = vector
         self.rect = self.rect.move(x, y)
 
+from models.sound import Sound as sd
 
 if __name__ == "__main__":
     WIDTH = 1024
@@ -60,7 +61,7 @@ if __name__ == "__main__":
         screen.fill((0, 0, 255))
 
         # loading the images
-        sprite_object = TST(width=WIDTH, height=HEIGHT)
+        sprite_object = BackgroundSprite(width=WIDTH, height=HEIGHT)
         player = Player(50, 500)
         Monster.set_user_pos(player.pos)
         player.controls(pygame.K_a, pygame.K_d, pygame.K_SPACE)
@@ -131,7 +132,7 @@ if __name__ == "__main__":
                         opened_menu = False
 
                     lastKey = pygame.key.get_pressed()
-                    player.command(e.key)
+                    #player.command(e.key)
 
             if menu.exit:
                 pygame.quit()
@@ -163,8 +164,9 @@ if __name__ == "__main__":
                         movement = 1
                         # monsters move with camera
                 if lastKey[player.jump_key]:
-                    player.command(player.jump_key)
-                    movement = -player.direction[0]
+                    if(not player_sprite.jumping and not player_sprite.falling):
+                        player.command(player.jump_key)
+                        movement = -player.direction[0]
                 else:
                     player_sprite.can_jump_again()
 
