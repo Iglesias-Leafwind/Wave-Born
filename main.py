@@ -9,33 +9,9 @@ from models.game_objects import Player, BirdLike, Spawner, SpiderLike, Whale, Tu
 from menu.menu import Menu
 
 from sprites.sprites import PlayerSprite, BirdLikeSprite, SpiderLikeSprite, WhaleSprite, \
-    TurtleLikeSprite, WaveSprite, BlockSprite
+    TurtleLikeSprite, WaveSprite, BlockSprite, BackgroundSprite
+
 from models.sound import Sound as sd
-
-class TST(Sprite):
-    def __init__(self, leftX=0, leftY=0, width=800, height=600):
-        Sprite.__init__(self)
-        picture = image.load("sources/imgs/background.png")
-        picture = pygame.transform.scale(picture, (width, height))
-        self.image = picture.convert_alpha()
-
-        self.rect = Rect(leftX, leftY, width - 3, height - 3)
-
-        self.yes = True
-
-    def move(self, x=True, forward=True):
-        forward = 1 if forward else -1
-        if x:
-            self.rect.x += forward * 10
-        else:
-            self.rect.y += forward * 10
-
-    def update(self, vector=0):
-        if vector == 0:
-            return
-        x, y = vector
-        self.rect = self.rect.move(x, y)
-
 
 if __name__ == "__main__":
     WIDTH = 1024
@@ -59,7 +35,7 @@ if __name__ == "__main__":
         screen.fill((0, 0, 255))
 
         # loading the images
-        sprite_object = TST(width=WIDTH, height=HEIGHT)
+        sprite_object = BackgroundSprite(width=WIDTH, height=HEIGHT)
         player = Player(50, 500)
         Monster.set_user_pos(player.pos)
         player.controls(pygame.K_a, pygame.K_d, pygame.K_SPACE)
@@ -124,7 +100,7 @@ if __name__ == "__main__":
                         opened_menu = False
 
                     lastKey = pygame.key.get_pressed()
-                    player.command(e.key)
+                    #player.command(e.key)
 
             if menu.exit:
                 pygame.quit()
@@ -156,8 +132,9 @@ if __name__ == "__main__":
                         movement = 1
                         #monsters move with camera
                 if lastKey[player.jump_key]:
-                    player.command(player.jump_key)
-                    movement = -player.direction[0]
+                    if(not player_sprite.jumping and not player_sprite.falling):
+                        player.command(player.jump_key)
+                        movement = -player.direction[0]
                 else:
                     player_sprite.can_jump_again()
 
