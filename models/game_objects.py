@@ -6,8 +6,10 @@ from models.common import Left, Right, Up, Directions
 
 
 class Player:
-    def __init__(self):
+    def __init__(self, x, y):
         self.direction = None
+        self.dead = False
+        self.pos = (x, y)
 
     def controls(self, left, right, jump):
         self.control_keys = {left: Left, right: Right, jump: Up}
@@ -23,6 +25,21 @@ class Player:
         """Add one piece, pop one out."""
         if direction:
             self.direction = direction
+    @property
+    def x(self):
+        return self.pos[0]
+
+    @x.setter
+    def x(self, v):
+        self.pos = v, self.y
+
+    @property
+    def y(self):
+        return self.pos[1]
+
+    @y.setter
+    def y(self, v):
+        self.pos = self.x, v
 
     @property
     def left_key(self):
@@ -61,6 +78,10 @@ class Wave:
 class Monster:
     _ID = 0
 
+    USER_POS = None
+    USER_WIDTH_OFFSET = 32
+    USER_HEIGHT_OFFSET = 32
+
     def __init__(self, start_width=0, stop_width=0, start_height=0,
                  stop_height=0,
                  jump_limit=7,
@@ -82,6 +103,12 @@ class Monster:
         self.falling = False  # is falling
         self.id = self._get_id()
         self.spawn()
+
+    @classmethod
+    def set_user_pos(cls, pos, width_offset=32, height_offset=32):
+        cls.USER_POS = pos
+        cls.USER_WIDTH_OFFSET = width_offset
+        cls.USER_HEIGHT_OFFSET = height_offset
 
     def _get_id(self):
         id = Monster._ID
@@ -119,19 +146,37 @@ class Monster:
         self.attacking = False
 
     def spawn(self):
-        self.pos = [
-            random.randrange(self.start_width, self.stop_width),
-            random.randrange(self.start_height, self.stop_height),
-        ]
-        return self.pos
+        if not Monster.USER_POS:
+            self.pos = [
+                random.randrange(self.start_width, self.stop_width),
+                random.randrange(self.start_height, self.stop_height),
+            ]
+            return self.pos
+
+        while True:
+            self.pos = [
+                random.randrange(self.start_width, self.stop_width),
+                random.randrange(self.start_height, self.stop_height),
+            ]
+            if self.x >= Monster.USER_POS[0] + Monster.USER_WIDTH_OFFSET or self.x <= Monster.USER_POS[0] - Monster.USER_WIDTH_OFFSET\
+                    or self.y <= Monster.USER_POS[1] + Monster.USER_HEIGHT_OFFSET or self.y >= Monster.USER_POS[1] - Monster.USER_HEIGHT_OFFSET:
+                return self.pos
 
     @property
     def x(self):
         return self.pos[0]
 
+    @x.setter
+    def x(self, v):
+        self.pos = v, self.y
+
     @property
     def y(self):
         return self.pos[1]
+
+    @y.setter
+    def y(self, v):
+        self.pos = self.x, v
 
     def clone(self):
         raise NotImplemented
@@ -150,6 +195,7 @@ class BirdLike(Monster):
                  jump_dist_x=7,
                  jump_dist_y=1):
         super().__init__(start_width, stop_width, start_height, stop_height, jump_limit, jump_dist_x, jump_dist_y)
+
 
     def clone(self) -> Monster:
         return BirdLike(self.start_width, self.stop_width, self.start_height, self.stop_height)
@@ -171,7 +217,7 @@ class GroundMonster(Monster):
     def spawn(self):
         self.pos = [
             random.randrange(self.start_width, self.stop_width),
-            500,
+            self.stop_height,
         ]
         return self.pos
 

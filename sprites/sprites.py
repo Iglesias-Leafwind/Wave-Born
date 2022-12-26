@@ -10,7 +10,6 @@ from models.sound import Sound
 from sprites.spritesheet import SpriteSheet
 
 CELL_SIZE = 64
-
 ACC = 0.0975
 
 
@@ -84,7 +83,6 @@ class PlayerSprite(pygame.sprite.Sprite):
         self.running = False  # is running
         self.without_moving = 0  # number of updates without moving action
         self.playing_running_sound = True
-        self.is_dead = False
 
         # to avoid consecutive jumps
         # when the user presses the space key and never lift the finger, the sprite will jump forever :x
@@ -92,7 +90,8 @@ class PlayerSprite(pygame.sprite.Sprite):
 
         self.image = self.stop_image
         self.rect = self.image.get_rect()
-        self.rect.y = 500
+        self.rect.x = player.x
+        self.rect.y = player.y
         self.pos_before_jump = self.rect.y
         self.mask = pygame.mask.from_surface(self.image)
         PlayerSprite.__player_sprite = self
@@ -105,7 +104,7 @@ class PlayerSprite(pygame.sprite.Sprite):
             return True
 
     def dead(self):
-        self.is_dead = True
+        self.player.dead = True
 
     @staticmethod
     def get_or_create(**kwargs):
@@ -410,9 +409,10 @@ class FeatherSprite(pygame.sprite.Sprite):
 
     def _has_collision_or_out_of_world(self, feather_pos, WIDTH, HEIGHT):
         player = PlayerSprite.get_or_create()
-        if player.has_collision_with(feather_pos[0], feather_pos[1]) or \
-                feather_pos[0] < 0 or feather_pos[0] > WIDTH or feather_pos[1] > HEIGHT:
+        if player.has_collision_with(feather_pos[0], feather_pos[1]):
             player.dead()
+            return True
+        if feather_pos[0] < 0 or feather_pos[0] > WIDTH or feather_pos[1] > HEIGHT:
             return True
 
     def update(self):
@@ -465,6 +465,11 @@ class BirdLikeSprite(MonsterSprite):
 
         self.right_dead_images = self.left_dead_images = self.left_move_images[:1]
         self.img_indexes = {m.id: 0 for m in self.monsters}
+
+    def _remove_monster(self, bird):
+        super(BirdLikeSprite, self)._remove_monster(bird)
+        Sound.pop_sound(self.cry_count[bird.id]['sound'])
+        self.cry_count.pop(bird.id)
 
     def update(self):
         super(BirdLikeSprite, self).update()
@@ -640,6 +645,12 @@ class TurtleLikeSprite(GroundMonsterSprite):
 
         self.img_indexes = {m.id: 0 for m in self.monsters}
 
+    def _remove_monster(self, turtle):
+        super(TurtleLikeSprite, self)._remove_monster(turtle)
+        Sound.pop_sound(self.sound_count[turtle.id]['step'])
+        Sound.pop_sound(self.sound_count[turtle.id]['cry'])
+        self.sound_count.pop(turtle.id)
+
     def update(self):
         super(TurtleLikeSprite, self).update()
         for turtle in self.monsters:
@@ -677,7 +688,7 @@ class TurtleLikeSprite(GroundMonsterSprite):
                             turtle_cry['time'] = time.time()
                             turtle_cry['cry'].play()
                             WaveSprite.get_or_create().add_wave(Wave([turtle.x, turtle.y], random.randint(5, 10), 144,
-                                        [0, turtle_cry['wait'] / 10]))
+                                                                     [0, turtle_cry['wait'] / 10]))
                             turtle_cry['finished'] = 0
 
             if turtle.dying or turtle.attacking:
@@ -737,7 +748,7 @@ class WhaleSprite(MonsterSprite):
                         self.sound.play()
                         whale_attack['time'] = time.time()
                         wave = Wave([whale.x - 32, whale.y], 1, 144,
-                                        [0, whale_attack['wait'] / 10])
+                                    [0, whale_attack['wait'] / 10])
                         WaveSprite.get_or_create().add_wave(wave)
 
             if whale.attacking and time.time() - self.attack_count[whale.id]['time'] >= self.attack_interval:

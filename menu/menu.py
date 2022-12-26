@@ -1,7 +1,6 @@
 import pygame_menu
 from pygame.constants import K_SPACE, K_a, K_d
 from pygame.mixer import *
-import pygame
 
 class Menu(pygame_menu.Menu):
     def __init__(self):
@@ -10,7 +9,7 @@ class Menu(pygame_menu.Menu):
                           [('Easy', 0), ('Normal', 1), ('Hard', 2)],
                           onchange=self.set_difficulty)
 
-        self.add.button('Play', self.start_the_game)
+        self.play = self.add.button('Continue', self.start_game)
 
         self.add.range_slider("Volume",
                               default=80,
@@ -18,6 +17,7 @@ class Menu(pygame_menu.Menu):
                               increment=1,
                               value_format=lambda x: str(int(x)),
                               onchange=self.set_volume)
+
         self.key_inputs = {}
         self.key_inputs_pressed = {'LEFT': K_a , 'RIGHT': K_d, 'JUMP': K_SPACE}
         for i in [('LEFT', 'a'), ('RIGHT', 'd'), ('JUMP', 'space')]:
@@ -31,6 +31,7 @@ class Menu(pygame_menu.Menu):
                                                              onchange=self.change_control)
         self.add.button('Quit', self.quit)
 
+        self._game_over = False
         self.show = False
         self.difficulty = 1
         self.volume_ = 5
@@ -40,8 +41,10 @@ class Menu(pygame_menu.Menu):
     def unselect(self, *args):
         self.key_inputs[self.who_selected].select(False)
 
-    def start_the_game(self):
+    def start_game(self):
+        self._game_over = False
         self.show = False
+        self.play.set_title('Continue')
         self.disable()
 
     def quit(self):
@@ -73,6 +76,14 @@ class Menu(pygame_menu.Menu):
             new_key = key[:4] + key[-1]
         self.key_inputs[self.who_selected].set_value(new_key)
         self.key_inputs_pressed[self.who_selected] = i
+
+    def game_over(self):
+        self._game_over = True
+        self.play.set_title('Start new game')
+        self.set_show()
+
+    def is_game_over(self):
+        return self._game_over
 
     @property
     def volume(self):
