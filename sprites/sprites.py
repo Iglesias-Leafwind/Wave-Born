@@ -167,6 +167,9 @@ class PlayerSprite(pygame.sprite.Sprite):
             self.jumping = False
             self.falling = True
 
+    def update_camera_movement(self,movement):
+        self.rect.x -= movement
+    
     def update(self):
         if self.player.direction:
             move_images = None
@@ -680,8 +683,8 @@ class TurtleLikeSprite(GroundMonsterSprite):
                         # first time
                         self.sound_count[turtle.id]['time'] = time.time()
                         self.sound_count[turtle.id]['cry'].play()
-                        WaveSprite.get_or_create().add_wave(Wave([turtle.x, turtle.y], random.randint(5, 10), 144,
-                                                                 [0, self.sound_count[turtle.id]['wait'] / 10]))
+                        WaveSprite.get_or_create().add_wave(Wave([turtle.x, turtle.y], random.randint(1, 5), 144,
+                                                                 [0, self.sound_count[turtle.id]['wait'] / 5]))
                     elif finished_crying:
                         turtle_cry = self.sound_count[turtle.id]
                         if turtle_cry['finished'] == 0:
@@ -693,8 +696,8 @@ class TurtleLikeSprite(GroundMonsterSprite):
                             # set finished to 0 and cry again
                             turtle_cry['time'] = time.time()
                             turtle_cry['cry'].play()
-                            WaveSprite.get_or_create().add_wave(Wave([turtle.x, turtle.y], random.randint(5, 10), 144,
-                                                                     [0, turtle_cry['wait'] / 10]))
+                            WaveSprite.get_or_create().add_wave(Wave([turtle.x, turtle.y], random.randint(1, 5), 144,
+                                                                     [0, turtle_cry['wait'] / 5]))
                             turtle_cry['finished'] = 0
 
             if turtle.dying or turtle.attacking:
@@ -753,8 +756,8 @@ class WhaleSprite(MonsterSprite):
                         self.change_monster_state(whale)
                         self.sound.play()
                         whale_attack['time'] = time.time()
-                        wave = Wave([whale.x - 32, whale.y], 1, 144,
-                                    [0, whale_attack['wait'] / 10])
+                        wave = Wave([whale.x + (whale.x/4), 3.5*whale.y], 1, 144,
+                                    [0, whale_attack['wait'] / 2])
                         WaveSprite.get_or_create().add_wave(wave)
 
             if whale.attacking and time.time() - self.attack_count[whale.id]['time'] >= self.attack_interval:

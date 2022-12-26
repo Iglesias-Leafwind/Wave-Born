@@ -116,6 +116,7 @@ class Player:
 class Wave:
     def __init__(self, center, velocity, clockticks, sound_interval):
         # sound_interval = (sound_start,sound_end)
+        clockticks = 3*clockticks/4
         self.radius = -velocity * clockticks * sound_interval[0] if sound_interval[0] > 0 else 0
         self.x = center[0]
         self.y = center[1]
