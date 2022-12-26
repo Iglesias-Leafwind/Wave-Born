@@ -157,6 +157,10 @@ if __name__ == "__main__":
                     if added:
                         chunk_sprites.append(BlockSprite(added,blocks_x,blocks_y,SCALE))
                         all_sprites.add(chunk_sprites[-1])
+                        try:
+                            all_sprites.add(added.end_sprite)
+                        except:
+                            pass
                     moved = 0
                 elif(int(moved / (SCALE*16)) <= -1):
                     _, _ = world.loadPrevChunk()
@@ -166,7 +170,7 @@ if __name__ == "__main__":
                     world.moveWorld(movement)
                     for chunk_sprite in chunk_sprites:
                         chunk_sprite.move((-movement,0))
-
+                    
                     #counter entity movement with world
                     player_sprite.update_camera_movement(movement)
             

@@ -36,8 +36,20 @@ class BackgroundSprite(pygame.sprite.Sprite):
         x, y = vector
         self.rect = self.rect.move(x, y)
 
+class EndSprite(pygame.sprite.Sprite):
+    def __init__(self, SCALE):
+        Sprite.__init__(self)
+        END_CITY_SPRITESHEET = SpriteSheet("sources/imgs/end_city.png")
+        
+        self.image = pygame.transform.scale(END_CITY_SPRITESHEET.image_at((0, 0, 160, 180), -1),
+                                         (SCALE*5, SCALE*5+SCALE/5), )
 
-    
+        self.rect = self.image.get_rect()
+        
+    def move(self, velocity):
+        self.rect.x += velocity[0]
+        self.rect.y += velocity[1]
+        
 class BlockSprite(pygame.sprite.Sprite):
     def __init__(self, chunk, blocks_x, blocks_y, SCALE):
         Sprite.__init__(self)
@@ -66,7 +78,11 @@ class BlockSprite(pygame.sprite.Sprite):
 
     def move(self, velocity):
         self.rect.move_ip(velocity)
-
+        try:
+            self.chunk.end_sprite.move(velocity)
+        except:
+            pass
+        
     def remove(self):
         self.kill()
 

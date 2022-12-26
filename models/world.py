@@ -29,7 +29,7 @@ class World():
 
     def loadFiles(self):
         self.start = Chunk.load_chunk(0,"./chunks/normal/plane")
-        self.end = Chunk.load_chunk(0,"./chunks/normal/plane")
+        self.end = Chunk.load_chunk(0,"./chunks/normal/plane",end=True)
         
         file_path = "./chunks/normal"
         normal_chunks = [Chunk.load_chunk(0,join(file_path,f)) for f in listdir(file_path) if isfile(join(file_path, f))]
@@ -67,7 +67,7 @@ class World():
         for chunk in self.loaded_chunks:
             if chunk:
                 chunk.update(move)
-
+                
     def loadNextChunk(self):
         self.current_chunk += 1
         new_chunk_pos = self.current_chunk+2
@@ -78,6 +78,9 @@ class World():
             added = self.world_chunks[new_chunk_pos]
             self.loaded_chunks[4] = added
             self.loaded_chunks[4].update(-new_chunk_pos*16*32+self.moved)
+            if new_chunk_pos == (len(self.world_chunks)-1):
+                added.end_sprite.rect.x = 128 + added.x
+                added.end_sprite.rect.y = 448-180
             return removed, added
         return None, None
     

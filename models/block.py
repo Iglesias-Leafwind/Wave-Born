@@ -1,5 +1,6 @@
 import pygame
 import json
+from sprites.sprites import EndSprite
 
 class Block:
     def __init__(self, pos, block_type):
@@ -13,7 +14,7 @@ class Block:
 
 
 class Chunk:
-    def __init__(self, xpos, blocks, pre_requisits, post_requisits, tunnel=False):
+    def __init__(self, xpos, blocks, pre_requisits, post_requisits, tunnel=False, end=False,SCALE=32):
         self.x = xpos
         self.blocks = blocks
         for block in self.blocks:
@@ -22,11 +23,11 @@ class Chunk:
         self.tunnel = tunnel
         self.pre_requisits = pre_requisits
         self.post_requisits = post_requisits
-    
-
+        if(end):
+            self.end_sprite = EndSprite(SCALE)
     
     @staticmethod
-    def load_chunk(xpos,json_file_path):
+    def load_chunk(xpos,json_file_path,end=False):
                 
         # Opening JSON file
         f = open(json_file_path)
@@ -46,7 +47,7 @@ class Chunk:
         # Closing file
         f.close()
         
-        return Chunk(xpos,blocks,pre_requisits,post_requisits,tunnel)
+        return Chunk(xpos,blocks,pre_requisits,post_requisits,tunnel,end=end)
 
     def save_chunk(self,json_file_path):
         # Data to be written
