@@ -98,7 +98,7 @@ if __name__ == "__main__":
         opened_menu = False
         hardmode = False
 
-        world = World("easy", 5)
+        world = World("easy", 1)
         world.startWorld()
         moved = 0
         chunk_sprites = []
@@ -108,6 +108,7 @@ if __name__ == "__main__":
                 all_sprites.add(chunk_sprites[-1])
 
         while 1:
+            camera_move = True
             movement = 0
             clock.tick(144)
             for e in event.get():
@@ -137,19 +138,26 @@ if __name__ == "__main__":
                     if(world.current_chunk == 0):
                         pass
                         #player moves
+                    elif(world.current_chunk == len(world.world_chunks)):
+                        camera_move = False
+                        movement = -1
                     else:
                         movement = -1
-                        #player doesn't move
+                        #monsters move with camera
                 if lastKey[player.right_key]:
                     player.command(player.right_key)
                     if(world.current_chunk == len(world.world_chunks)):
                         pass
-                    #player moves
+                        #player moves
+                    elif(world.current_chunk == 0):
+                        camera_move = False
+                        movement = 1
                     else:
                         movement = 1
-                        #player doesn't move
+                        #monsters move with camera
                 if lastKey[player.jump_key]:
                     player.command(player.jump_key)
+                    movement = -player.direction[0]
                 else:
                     player_sprite.can_jump_again()
 
@@ -176,12 +184,16 @@ if __name__ == "__main__":
                 elif(int(moved / (SCALE*16)) <= -1):
                     _, _ = world.loadPrevChunk()
                     moved = 0
+                if(camera_move):
+                    #world movement
+                    world.moveWorld(movement)
+                    for chunk_sprite in chunk_sprites:
+                        chunk_sprite.move((-movement,0))
 
-
-                world.moveWorld(movement)
-                for chunk_sprite in chunk_sprites:
-                    chunk_sprite.move((-movement,0))
-
+                    #counter entity movement with world
+                    player_sprite.update_camera_movement(movement)
+            
+                
                 all_sprites.update()
                 all_sprites.draw(screen)
                 bird_sprite.update()
@@ -210,10 +222,10 @@ if __name__ == "__main__":
                     # print(
                     #    f"------------------------------------------\nR: {wave.radius}\nT: {wave.thicc}\nV: {wave.velocity}\nS: {wave.sound_interval}\n---------------------------")
 
-                if player.dead:
-                    menu.game_over()
-                    menu.mainloop(screen)
-                    sd.stop_all_sounds()
-                    break
+                #if player.dead:
+                #    menu.game_over()
+                #    menu.mainloop(screen)
+                #    sd.stop_all_sounds()
+                #    break
 
             pygame.display.flip()

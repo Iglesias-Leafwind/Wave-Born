@@ -28,6 +28,9 @@ class World():
         self.generateWorld(self.loadFiles())
 
     def loadFiles(self):
+        self.start = Chunk.load_chunk(0,"./chunks/normal/plane")
+        self.end = Chunk.load_chunk(0,"./chunks/normal/plane")
+        
         file_path = "./chunks/normal"
         normal_chunks = [Chunk.load_chunk(0,join(file_path,f)) for f in listdir(file_path) if isfile(join(file_path, f))]
         
@@ -38,8 +41,8 @@ class World():
     def generateWorld(self,chunks):
         normal_qty = [idx for idx in range(len(chunks[0]))]
         tunnel_qty = [idx for idx in range(len(chunks[1]))]
-        self.world_chunks.append(copy.deepcopy(chunks[0][random.randint(0,len(chunks[0])-1)]))
-        for pos in range(1,self.num_chunks):
+        self.world_chunks.append(self.start)
+        for pos in range(1,self.num_chunks-1):
             if(self.world_chunks[pos-1].tunnel and random.randint(0,10)):
                 random.shuffle(tunnel_qty)
                 next_chunk = getPossibleChunks(chunks[1],self.world_chunks[pos-1],tunnel_qty)
@@ -53,7 +56,7 @@ class World():
                 continue
             print("Not possible to generate chunks given all possibilities")
             return None
-
+        self.world_chunks.append(self.end)
     def startWorld(self):
         for chunk in range(0,3):
             self.loaded_chunks[chunk+2] = self.world_chunks[chunk]
