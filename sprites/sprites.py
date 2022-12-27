@@ -373,7 +373,6 @@ class MonsterSprite(pygame.sprite.Sprite):
         if self.image_update_count >= self.image_update_per_frames:
             self.image_update_count = 0
 
-
 class FeatherSprite(pygame.sprite.Sprite):
     __feather_sprite = None
 
@@ -442,7 +441,11 @@ class FeatherSprite(pygame.sprite.Sprite):
         for i in to_be_removed:
             del self.feathers[i]
 
-
+    def update_camera_movement(self,movement):
+        for bird_id, feather in self.feathers.items():
+            old_pos = feather.pos
+            feather.pos = old_pos[0] - movement, old_pos[1]
+        
 class BirdLikeSprite(MonsterSprite):
     def __init__(self, birds, WIDTH, HEIGHT, SCALE):
         MonsterSprite.__init__(self, 16, 10)
@@ -541,6 +544,11 @@ class BirdLikeSprite(MonsterSprite):
         self.feather_sprite.draw(mask)
 
 
+    def update_camera_movement(self,movement):
+        for bird in self.monsters:
+            bird.x = bird.x - movement
+        self.feather_sprite.update_camera_movement(movement)
+        
 class GroundMonsterSprite(MonsterSprite):
     def update(self):
         super(GroundMonsterSprite, self).update()
@@ -602,7 +610,10 @@ class SpiderLikeSprite(GroundMonsterSprite):
             if spider.is_dead:
                 self._remove_monster(spider)
 
-
+    def update_camera_movement(self,movement):
+        for spider in self.monsters:
+            spider.x -= movement
+            
 class TurtleLikeSprite(GroundMonsterSprite):
     def __init__(self, turtles, WIDTH, HEIGHT, SCALE):
         MonsterSprite.__init__(self, 25, 10)
@@ -700,6 +711,9 @@ class TurtleLikeSprite(GroundMonsterSprite):
             else:
                 self.sound_count[turtle.id]['step'].play(loops=-1)
 
+    def update_camera_movement(self,movement):
+        for turtle in self.monsters:
+            turtle.x -= movement
 
 class WhaleSprite(MonsterSprite):
     def __init__(self, whales, SCALE):
@@ -746,7 +760,9 @@ class WhaleSprite(MonsterSprite):
             else:
                 attack_count['during_attack'] = False
 
-
+    def update_camera_movement(self,movement):
+        for whale in self.monsters:
+            whale.x -= movement
 def load_images(spritesheet, sprite_width, sprite_height, scale, positions):
     return [pygame.transform.scale(
         spritesheet.image_at(

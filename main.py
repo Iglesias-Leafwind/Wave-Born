@@ -177,6 +177,10 @@ if __name__ == "__main__":
 
                     # counter entity movement with world
                     player_sprite.update_camera_movement(movement)
+                    bird_sprite.update_camera_movement(movement)
+                    spider_sprite.update_camera_movement(movement)
+                    turtle_sprite.update_camera_movement(movement)
+                    whale_sprite.update_camera_movement(movement)
 
                 all_sprites.update()
                 all_sprites.draw(screen)
