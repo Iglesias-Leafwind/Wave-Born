@@ -1,153 +1,12 @@
 import random
 import time
-from enum import Enum
-import pygame
-from models.common import Left, Right, Up, Directions
-from models.fsm import State, Transition, FSM
 
-class Event(Enum):
-    MOVE = 1,
-    ATTACK = 2,
-    JUMP = 3,
-    FAIL = 4,
-    DYING = 5,
-    DEAD = 6
-
-
-class Move(State):
-    def __init__(self):
-        super().__init__(self.__class__.__name__)
-
-    @classmethod
-    def update(cls, monster):
-        monster.move()
-
-    @classmethod
-    def enter(cls, monster):
-        monster.attacking = False
-
-
-class Attack(State):
-    def __init__(self):
-        super().__init__(self.__class__.__name__)
-
-    @classmethod
-    def enter(cls, monster):
-        monster.attack()
-        if not isinstance(monster, BirdLike):
-            monster.SPRITE.change_monster_state(monster)
-
-
-class Jump(State):
-    def __init__(self):
-        super().__init__(self.__class__.__name__)
-
-    @classmethod
-    def update(cls, monster):
-        monster.jump()
-
-
-class Fail(State):
-    def __init__(self):
-        super().__init__(self.__class__.__name__)
-
-    @classmethod
-    def update(cls, monster):
-        monster.fail()
-
-
-class Dying(State):
-    def __init__(self):
-        super().__init__(self.__class__.__name__)
-
-    @classmethod
-    def enter(cls, monster):
-        monster.dead()
-
-
-class Dead(State):
-    def __init__(self):
-        super().__init__(self.__class__.__name__)
-
-    @classmethod
-    def update(cls, monster):
-        monster.is_dead = True
-
+from models.fsm import Transition, Move, Attack, Jump, Fail, Dead, Event, Dying, FSM
+from models.player import Player
+from models.wave import Wave, Waves
+from models.world import World
 
 STATES = [Move, Attack, Jump, Fail, Dead]
-
-class Player:
-    SPRITE = None
-
-    def __init__(self, x, y):
-        self.direction = None
-        self.dead = False
-        self.pos = (x, y)
-
-    def controls(self, left, right, jump):
-        self.control_keys = {left: Left, right: Right, jump: Up}
-        self.control_keys_name = {'left': left, 'right': right, 'jump': jump}
-
-    def command(self, control):
-        if control in self.control_keys.keys():
-            cmd = self.control_keys[control]()
-            cmd.execute(self)
-            return cmd
-
-    def move(self, direction: Directions = None):
-        """Add one piece, pop one out."""
-        if direction:
-            self.direction = direction
-
-    @property
-    def x(self):
-        return self.pos[0]
-
-    @x.setter
-    def x(self, v):
-        self.pos = v, self.y
-
-    @property
-    def y(self):
-        return self.pos[1]
-
-    @y.setter
-    def y(self, v):
-        self.pos = self.x, v
-
-    @property
-    def left_key(self):
-        return self.control_keys_name['left']
-
-    @property
-    def right_key(self):
-        return self.control_keys_name['right']
-
-    @property
-    def jump_key(self):
-        return self.control_keys_name['jump']
-
-
-class Wave:
-    def __init__(self, center, velocity, clockticks, sound_interval):
-        # sound_interval = (sound_start,sound_end)
-        clockticks = 3 * clockticks / 4
-        self.radius = -velocity * clockticks * sound_interval[0] if sound_interval[0] > 0 else 0
-        self.x = center[0]
-        self.y = center[1]
-        self.thicc = int(clockticks * (sound_interval[1] - sound_interval[0]))
-        self.velocity = velocity
-        self.sound_interval = sound_interval
-
-    def update(self):
-        self.radius += self.velocity
-
-    def draw(self, mask):
-        pygame.draw.circle(mask, (0, 0, 255), (self.x, self.y), self.radius, self.thicc)
-
-    def checkLimits(self, WIDTH, HEIGHT):
-        limits = [(0, 0), (WIDTH, 0), (0, HEIGHT), (WIDTH, HEIGHT)]
-        return all((abs(limit[0] - self.x) + abs(limit[1] - self.y)) < self.radius for limit in limits)
 
 
 class Monster:
@@ -156,7 +15,6 @@ class Monster:
     USER_POS = None
     USER_WIDTH_OFFSET = 32
     USER_HEIGHT_OFFSET = 32
-    WALLS = []
     TRANSITIONS = {
         Event.ATTACK: [Transition(Move, Attack)],
         Event.MOVE: [Transition(Attack, Move)],
@@ -301,7 +159,6 @@ class Monster:
     def clone(self):
         raise NotImplemented
 
-
 class Feather:
     def __init__(self, pos, direction):
         self.pos = pos
@@ -431,6 +288,7 @@ class GroundMonster(Monster):
         self.jumping = True
         self.falling = False
         self.jump_count = 0
+        self.get_sprite().change_monster_state(self)
 
 
 class SpiderLike(GroundMonster):
@@ -499,6 +357,7 @@ class Whale(Monster):
                 wave = Wave([self.x + (self.x / 4), 3.5 * self.y], 1, 144,
                             [0, whale_attack['wait'] / 2])
                 Waves.get_or_create().add_wave(wave)
+        Whale.SPRITE.change_monster_state(self)
 
     def update(self, **kwargs):
         event = None
@@ -530,41 +389,6 @@ class Whale(Monster):
                      jump_limit=7,
                      jump_dist_x=7,
                      jump_dist_y=1, attack_prob=0.01)
-
-
-class Waves:
-    _singleton = None
-
-    def __init__(self, waves=None):
-        if waves is None:
-            waves = []
-        self.waves = waves
-        self._i = 0
-        Waves._singleton = self
-
-    def add_wave(self, wave):
-        self.waves.append(wave)
-
-    def remove(self, wave):
-        self.waves.remove(wave)
-
-    @staticmethod
-    def get_or_create(**kwargs):
-        if Waves._singleton:
-            return Waves._singleton
-        return Waves(**kwargs)
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        if self._i < len(self.waves):
-            i = self._i
-            self._i += 1
-            return self.waves[i]
-        self._i = 0
-        raise StopIteration()
-
 
 class Spawner:
     def spawn_monster(self, prototype) -> Monster:

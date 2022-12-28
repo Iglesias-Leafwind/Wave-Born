@@ -1,5 +1,7 @@
 import json
-from sprites.sprites import EndSprite
+
+from sprites.chunk_sprites import EndSprite
+
 
 class Block:
     def __init__(self, pos, block_type):

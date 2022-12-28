@@ -2,12 +2,15 @@ import pygame
 from pygame import *
 from pygame.mixer import *
 
-from models.game_objects import Player, BirdLike, Spawner, SpiderLike, Whale, TurtleLike, Monster, Waves
+from models.monsters import Monster, BirdLike, Spawner, SpiderLike, TurtleLike, Whale
+from models.player import Player
+from models.wave import Waves
 from models.world import World
 from menu.menu import Menu
-
-from sprites.sprites import PlayerSprite, BirdLikeSprite, SpiderLikeSprite, WhaleSprite, \
-    TurtleLikeSprite, BlockSprite, BackgroundSprite
+from sprites.background_sprite import BackgroundSprite
+from sprites.chunk_sprites import BlockSprite
+from sprites.monster_sprites import SpiderLikeSprite, BirdLikeSprite, TurtleLikeSprite, WhaleSprite
+from sprites.player_sprite import PlayerSprite
 
 if __name__ == "__main__":
     WIDTH = 1024
@@ -32,15 +35,6 @@ if __name__ == "__main__":
 
         all_sprites = sprite.Group()
 
-        world = World("easy", 1)
-        world.startWorld()
-        moved = 0
-        chunk_sprites = []
-        for chunk in world.loaded_chunks:
-            if chunk:
-                chunk_sprites.append(BlockSprite(chunk, blocks_x, blocks_y, SCALE))
-                all_sprites.add(chunk_sprites[-1])
-        Monster.WALLS = world.loaded_chunks
 
         # loading the images
         sprite_object = BackgroundSprite(width=WIDTH, height=HEIGHT)
@@ -86,6 +80,16 @@ if __name__ == "__main__":
         menu = Menu()
         opened_menu = False
         hardmode = False
+
+        world = World("easy", 1)
+        world.startWorld()
+        moved = 0
+        chunk_sprites = []
+        for chunk in world.loaded_chunks:
+            if chunk:
+                chunk_sprites.append(BlockSprite(chunk, blocks_x, blocks_y, SCALE))
+                all_sprites.add(chunk_sprites[-1])
+        Monster.WALLS = world.loaded_chunks
 
         while 1:
             camera_move = True

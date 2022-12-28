@@ -1,4 +1,6 @@
 import logging
+from enum import Enum
+
 
 logging.basicConfig(
     level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -49,3 +51,71 @@ class FSM:
             self.current.exit(object)
             return False
         return True
+
+
+
+class Event(Enum):
+    MOVE = 1,
+    ATTACK = 2,
+    JUMP = 3,
+    FAIL = 4,
+    DYING = 5,
+    DEAD = 6
+
+
+class Move(State):
+    def __init__(self):
+        super().__init__(self.__class__.__name__)
+
+    @classmethod
+    def update(cls, monster):
+        monster.move()
+
+    @classmethod
+    def enter(cls, monster):
+        monster.attacking = False
+
+
+class Attack(State):
+    def __init__(self):
+        super().__init__(self.__class__.__name__)
+
+    @classmethod
+    def enter(cls, monster):
+        monster.attack()
+
+
+class Jump(State):
+    def __init__(self):
+        super().__init__(self.__class__.__name__)
+
+    @classmethod
+    def update(cls, monster):
+        monster.jump()
+
+
+class Fail(State):
+    def __init__(self):
+        super().__init__(self.__class__.__name__)
+
+    @classmethod
+    def update(cls, monster):
+        monster.fail()
+
+
+class Dying(State):
+    def __init__(self):
+        super().__init__(self.__class__.__name__)
+
+    @classmethod
+    def enter(cls, monster):
+        monster.dead()
+
+
+class Dead(State):
+    def __init__(self):
+        super().__init__(self.__class__.__name__)
+
+    @classmethod
+    def update(cls, monster):
+        monster.is_dead = True

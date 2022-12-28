@@ -1,5 +1,5 @@
 from pygame import *
-from sprites.sprites import BlockSprite
+from sprites.player_sprite import BlockSprite
 from models.world import *
 
 if __name__ == "__main__":
