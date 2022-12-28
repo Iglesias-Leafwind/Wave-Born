@@ -218,7 +218,7 @@ class BirdLikeSprite(MonsterSprite):
             self.cry_count.pop(bird.id)
 
     def update(self, **kwargs):
-        super(BirdLikeSprite, self).update(**kwargs, right_offset=self.sprite_width, left_offset=self.sprite_width)
+        super(BirdLikeSprite, self).update(**kwargs)
 
         for bird in self.monsters:
             if bird.is_dead:
@@ -331,7 +331,7 @@ class SpiderLikeSprite(GroundMonsterSprite):
         self.img_indexes = {m.id: 0 for m in self.monsters}
 
     def update(self, **kwargs):
-        super(SpiderLikeSprite, self).update(**kwargs, right_offset=self.sprite_width, left_offset=self.sprite_width)
+        super(SpiderLikeSprite, self).update(**kwargs)
         for spider in self.monsters:
             if spider.is_dead:
                 self._remove_monster(spider)
@@ -395,7 +395,7 @@ class TurtleLikeSprite(GroundMonsterSprite):
             self.sound_count.pop(turtle.id)
 
     def update(self, **kwargs):
-        super(TurtleLikeSprite, self).update(**kwargs, right_offset=self.sprite_width * 2, left_offset=20)
+        super(TurtleLikeSprite, self).update(**kwargs)
         for turtle in self.monsters:
             if turtle.is_dead:
                 self._remove_monster(turtle)

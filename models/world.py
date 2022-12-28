@@ -103,6 +103,13 @@ class World:
             return removed, added
         return None, None
 
+    def get_blocks(self):
+        block_lists = [w.blocks for w in self.loaded_chunks if w]
+        blocks = []
+        for bl in block_lists:
+            blocks.extend(bl)
+        return blocks
+
     @classmethod
     def get_or_create(cls, **kwargs):
         if cls._singleton:

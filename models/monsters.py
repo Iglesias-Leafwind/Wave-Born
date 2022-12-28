@@ -51,10 +51,13 @@ class Monster:
         self.attack_prob = attack_prob
         self.cry_prob = cry_prob
         self.id = self._get_id()
+        self.right_offset = 64
+        self.left_offset = 64
+        self.fsm: FSM
         self.spawn()
 
     def update(self, **kwargs):
-        self.turn_dirc_if_hit_wall(**kwargs)
+        pass
 
     def want_attack(self):
         return random.random() <= self.attack_prob
@@ -92,6 +95,7 @@ class Monster:
 
     def move(self):
         old_pos = self.pos
+        self.turn_dirc_if_hit_wall()
         new_pos = old_pos[0] + self.direction, old_pos[1]
         self.pos = new_pos
 
@@ -120,22 +124,40 @@ class Monster:
                 0] - Monster.USER_WIDTH_OFFSET \
                     or self.y <= Monster.USER_POS[1] + Monster.USER_HEIGHT_OFFSET or self.y >= Monster.USER_POS[
                 1] - Monster.USER_HEIGHT_OFFSET:
+
+                if self.check_inside_walls():
+                    continue
                 return self.pos
 
     def out_of_world(self):
         return self.x < 0 or self.x > self.width or self.y > self.height or self.y < 0
 
-    def turn_dirc_if_hit_wall(self, walls, right_offset, left_offset):
-        for w in walls:
-            if not w:
-                continue
-            for b in w.blocks:
-                if self.direction == 1 and b.x - self.x == right_offset and abs(b.y - self.y) <= 16:
+    def turn_dirc_if_hit_wall(self, turn=True):
+        blocks = World.get_or_create().get_blocks()
+        for b in blocks:
+            if self.direction == 1 and b.x > self.x and abs(b.x - self.x) < self.right_offset and abs(
+                    b.y - self.y) <= 16:
+                if turn:
                     self.direction = -1
-                    break
-                elif self.direction == -1 and self.x - b.x == left_offset and abs(b.y - self.y) <= 16:
+                return True
+            elif self.direction == -1 and self.x > b.x and abs(b.x - self.x) < self.left_offset and abs(
+                    b.y - self.y) <= 16:
+                if turn:
                     self.direction = 1
-                    break
+                return True
+
+    def check_inside_walls(self):
+        blocks = World.get_or_create().get_blocks()
+        for b in blocks:
+            if abs(self.x - b.x) < 32 and abs(self.y - b.y) < 32:
+                return True
+
+    def step_on_wall(self):
+        blocks = World.get_or_create().get_blocks()
+        for b in blocks:
+            if self.falling and abs(b.x - self.x) < 32 and b.y > self.y and abs(b.y - self.y) < 16:
+                return True
+
     @classmethod
     def get_sprite(cls):
         return cls.SPRITE
@@ -158,6 +180,7 @@ class Monster:
 
     def clone(self):
         raise NotImplemented
+
 
 class Feather:
     def __init__(self, pos, direction):
@@ -257,31 +280,53 @@ class GroundMonster(Monster):
         self.fsm.update(event, self)
 
     def spawn(self):
-        self.pos = [
-            random.randrange(self.start_width, self.stop_width),
-            self.stop_height,
-        ]
-        return self.pos
+        while True:
+            self.pos = [
+                random.randrange(self.start_width, self.stop_width),
+                self.stop_height,
+            ]
+            if self.check_inside_walls():
+                continue
+            return self.pos
 
-    def jump(self):
+    def jump(self, **kwargs):
         old_pos = self.pos
         if self.jump_count < self.jump_limit:
-            self.pos = old_pos[0] + self.jump_dist_x * self.direction, \
-                       old_pos[1] - self.jump_dist_y
+            if self.turn_dirc_if_hit_wall(turn=False):
+                self.pos = old_pos[0], \
+                           old_pos[1] - self.jump_dist_y
+                print(f"{self.id} {self.pos}")
+            else:
+                self.pos = old_pos[0] + self.jump_dist_x * self.direction, \
+                           old_pos[1] - self.jump_dist_y
+
             self.jump_count += 1
         else:
-            self.jumping = False
-            self.falling = True
+            self.start_fail()
 
-    def fail(self):
+    def start_fail(self):
+        self.jumping = False
+        self.falling = True
+
+    def fail(self, **kwargs):
         old_pos = self.pos
         if self.jump_count >= 0:
-            self.pos = old_pos[0] + self.jump_dist_x * self.direction, \
-                       old_pos[1] + self.jump_dist_y
-            self.jump_count -= 1
+            if self.step_on_wall():
+                self.stop_fail()
+            else:
+                if self.turn_dirc_if_hit_wall(turn=False):
+                    self.pos = old_pos[0], \
+                               old_pos[1] + self.jump_dist_y
+                else:
+                    self.pos = old_pos[0] + self.jump_dist_x * self.direction, \
+                               old_pos[1] + self.jump_dist_y
+                self.jump_count -= 1
         else:
-            self.jump_count = 0
-            self.falling = False
+            self.stop_fail()
+
+    def stop_fail(self):
+        self.jump_count = 0
+        self.falling = False
 
     def attack(self):
         super(GroundMonster, self).attack()
@@ -304,6 +349,9 @@ class SpiderLike(GroundMonster):
                          jump_dist_y,
                          attack_prob=attack_prob)
 
+        self.right_offset = 64
+        self.left_offset = 50
+
     def clone(self) -> Monster:
         return SpiderLike(self.width, self.height, self.start_width, self.stop_width, self.start_height,
                           self.stop_height, self.jump_limit,
@@ -321,6 +369,8 @@ class TurtleLike(GroundMonster):
         super().__init__(width, height, start_width, stop_width, start_height, stop_height, jump_limit, jump_dist_x,
                          jump_dist_y,
                          attack_prob, cry_prob)
+        self.right_offset = 110
+        self.left_offset = 50
 
     def clone(self) -> Monster:
         return TurtleLike(self.width, self.height, self.start_width, self.stop_width, self.start_height,
@@ -389,6 +439,7 @@ class Whale(Monster):
                      jump_limit=7,
                      jump_dist_x=7,
                      jump_dist_y=1, attack_prob=0.01)
+
 
 class Spawner:
     def spawn_monster(self, prototype) -> Monster:

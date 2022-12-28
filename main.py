@@ -35,6 +35,8 @@ if __name__ == "__main__":
 
         all_sprites = sprite.Group()
 
+        world = World("easy", 1)
+        world.startWorld()
 
         # loading the images
         sprite_object = BackgroundSprite(width=WIDTH, height=HEIGHT)
@@ -50,12 +52,12 @@ if __name__ == "__main__":
         bird_sprite = BirdLikeSprite(birds, WIDTH, HEIGHT, SCALE)
 
         spider = SpiderLike(width=WIDTH, height=HEIGHT, start_width=100, stop_width=WIDTH, stop_height=500,
-                            attack_prob=0.01)
+                            attack_prob=0.05)
         spiders = [spawner.spawn_monster(spider) for _ in range(5)]
         spider_sprite = SpiderLikeSprite(spiders, WIDTH, HEIGHT, SCALE)
         SpiderLike.SPRITE = spider_sprite
 
-        turtle = TurtleLike(width=WIDTH, height=HEIGHT, start_width=100, stop_width=WIDTH, stop_height=500,
+        turtle = TurtleLike(width=WIDTH, height=HEIGHT, start_width=100, stop_width=WIDTH, stop_height=490,
                             attack_prob=0.01)
         turtles = [spawner.spawn_monster(turtle) for _ in range(3)]
         turtle_sprite = TurtleLikeSprite(turtles, WIDTH, HEIGHT, SCALE)
@@ -81,8 +83,6 @@ if __name__ == "__main__":
         opened_menu = False
         hardmode = False
 
-        world = World("easy", 1)
-        world.startWorld()
         moved = 0
         chunk_sprites = []
         for chunk in world.loaded_chunks:
@@ -188,11 +188,11 @@ if __name__ == "__main__":
 
                 all_sprites.update()
                 all_sprites.draw(screen)
-                bird_sprite.update(walls=world.loaded_chunks)
+                bird_sprite.update()
                 bird_sprite.draw(screen)
-                spider_sprite.update(walls=world.loaded_chunks)
+                spider_sprite.update()
                 spider_sprite.draw(screen)
-                turtle_sprite.update(walls=world.loaded_chunks)
+                turtle_sprite.update()
                 turtle_sprite.draw(screen)
                 whale_sprite.update()
                 whale_sprite.draw(screen)
