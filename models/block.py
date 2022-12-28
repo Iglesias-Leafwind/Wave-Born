@@ -1,4 +1,3 @@
-import pygame
 import json
 from sprites.sprites import EndSprite
 

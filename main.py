@@ -1,14 +1,12 @@
 import pygame
 from pygame import *
-from pygame.sprite import *
 from pygame.mixer import *
-import random
 
-from models.world import *
 from models.game_objects import Player, BirdLike, Spawner, SpiderLike, Whale, TurtleLike, Monster, Waves
+from models.world import World
 from menu.menu import Menu
 
-from sprites.sprites import PlayerSprite, BirdLikeSprite, SpiderLikeSprite, WhaleSprite, BackgroundSprite, \
+from sprites.sprites import PlayerSprite, BirdLikeSprite, SpiderLikeSprite, WhaleSprite, \
     TurtleLikeSprite, BlockSprite, BackgroundSprite
 
 if __name__ == "__main__":
@@ -31,6 +29,18 @@ if __name__ == "__main__":
         # init screen
         screen = pygame.display.set_mode((WIDTH, HEIGHT))
         screen.fill((0, 0, 255))
+
+        all_sprites = sprite.Group()
+
+        world = World("easy", 1)
+        world.startWorld()
+        moved = 0
+        chunk_sprites = []
+        for chunk in world.loaded_chunks:
+            if chunk:
+                chunk_sprites.append(BlockSprite(chunk, blocks_x, blocks_y, SCALE))
+                all_sprites.add(chunk_sprites[-1])
+        Monster.WALLS = world.loaded_chunks
 
         # loading the images
         sprite_object = BackgroundSprite(width=WIDTH, height=HEIGHT)
@@ -61,7 +71,6 @@ if __name__ == "__main__":
         whale_sprite = WhaleSprite([whale], SCALE)
         Whale.SPRITE = whale_sprite
 
-        all_sprites = sprite.Group()
         all_sprites.add(sprite_object)
         all_sprites.add(player_sprite)
 
@@ -77,15 +86,6 @@ if __name__ == "__main__":
         menu = Menu()
         opened_menu = False
         hardmode = False
-
-        world = World("easy", 1)
-        world.startWorld()
-        moved = 0
-        chunk_sprites = []
-        for chunk in world.loaded_chunks:
-            if chunk:
-                chunk_sprites.append(BlockSprite(chunk, blocks_x, blocks_y, SCALE))
-                all_sprites.add(chunk_sprites[-1])
 
         while 1:
             camera_move = True
@@ -104,7 +104,7 @@ if __name__ == "__main__":
                         opened_menu = False
 
                     lastKey = pygame.key.get_pressed()
-                    #player.command(e.key)
+                    # player.command(e.key)
 
             if menu.exit:
                 pygame.quit()
@@ -136,7 +136,7 @@ if __name__ == "__main__":
                         movement = 1
                         # monsters move with camera
                 if lastKey[player.jump_key]:
-                    if(not player_sprite.jumping and not player_sprite.falling):
+                    if (not player_sprite.jumping and not player_sprite.falling):
                         player.command(player.jump_key)
                         movement = -player.direction[0]
                 else:
@@ -184,11 +184,11 @@ if __name__ == "__main__":
 
                 all_sprites.update()
                 all_sprites.draw(screen)
-                bird_sprite.update()
+                bird_sprite.update(walls=world.loaded_chunks)
                 bird_sprite.draw(screen)
-                spider_sprite.update()
+                spider_sprite.update(walls=world.loaded_chunks)
                 spider_sprite.draw(screen)
-                turtle_sprite.update()
+                turtle_sprite.update(walls=world.loaded_chunks)
                 turtle_sprite.draw(screen)
                 whale_sprite.update()
                 whale_sprite.draw(screen)

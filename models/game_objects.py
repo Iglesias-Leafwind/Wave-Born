@@ -1,12 +1,9 @@
 import random
 import time
 from enum import Enum
-
 import pygame
-
 from models.common import Left, Right, Up, Directions
 from models.fsm import State, Transition, FSM
-
 
 class Event(Enum):
     MOVE = 1,
@@ -78,7 +75,6 @@ class Dead(State):
 
 
 STATES = [Move, Attack, Jump, Fail, Dead]
-
 
 class Player:
     SPRITE = None
@@ -160,7 +156,7 @@ class Monster:
     USER_POS = None
     USER_WIDTH_OFFSET = 32
     USER_HEIGHT_OFFSET = 32
-
+    WALLS = []
     TRANSITIONS = {
         Event.ATTACK: [Transition(Move, Attack)],
         Event.MOVE: [Transition(Attack, Move)],
@@ -200,7 +196,7 @@ class Monster:
         self.spawn()
 
     def update(self, **kwargs):
-        pass
+        self.turn_dirc_if_hit_wall(**kwargs)
 
     def want_attack(self):
         return random.random() <= self.attack_prob
@@ -271,6 +267,17 @@ class Monster:
     def out_of_world(self):
         return self.x < 0 or self.x > self.width or self.y > self.height or self.y < 0
 
+    def turn_dirc_if_hit_wall(self, walls, right_offset, left_offset):
+        for w in walls:
+            if not w:
+                continue
+            for b in w.blocks:
+                if self.direction == 1 and b.x - self.x == right_offset and abs(b.y - self.y) <= 16:
+                    self.direction = -1
+                    break
+                elif self.direction == -1 and self.x - b.x == left_offset and abs(b.y - self.y) <= 16:
+                    self.direction = 1
+                    break
     @classmethod
     def get_sprite(cls):
         return cls.SPRITE
@@ -313,7 +320,9 @@ class BirdLike(Monster):
     def dead(self):
         self.is_dead = True
 
-    def update(self, player_pos):
+    def update(self, **kwargs):
+        super(BirdLike, self).update(**kwargs)
+
         event = None
         player = Player.SPRITE
         if player.stepped_on(self.x, self.y) or self.out_of_world():
@@ -365,7 +374,8 @@ class GroundMonster(Monster):
                                             jump_dist_y, attack_prob, cry_prob)
         self.fsm = FSM(STATES, GroundMonster.TRANSITIONS)
 
-    def update(self, player_pos):
+    def update(self, **kwargs):
+        super(GroundMonster, self).update(**kwargs)
         event = None
         player = Player.SPRITE
         if player.stepped_on(self.x, self.y):
@@ -490,7 +500,7 @@ class Whale(Monster):
                             [0, whale_attack['wait'] / 2])
                 Waves.get_or_create().add_wave(wave)
 
-    def update(self, player_pos):
+    def update(self, **kwargs):
         event = None
         if self.out_of_world():
             event = Event.DEAD
