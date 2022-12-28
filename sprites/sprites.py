@@ -12,6 +12,7 @@ from sprites.spritesheet import SpriteSheet
 CELL_SIZE = 64
 ACC = 0.0975
 
+
 class BackgroundSprite(pygame.sprite.Sprite):
     def __init__(self, leftX=0, leftY=0, width=800, height=600):
         Sprite.__init__(self)
@@ -36,20 +37,22 @@ class BackgroundSprite(pygame.sprite.Sprite):
         x, y = vector
         self.rect = self.rect.move(x, y)
 
+
 class EndSprite(pygame.sprite.Sprite):
     def __init__(self, SCALE):
         Sprite.__init__(self)
         END_CITY_SPRITESHEET = SpriteSheet("sources/imgs/end_city.png")
-        
+
         self.image = pygame.transform.scale(END_CITY_SPRITESHEET.image_at((0, 0, 160, 180), -1),
-                                         (SCALE*5, SCALE*5+SCALE/5), )
+                                            (SCALE * 5, SCALE * 5 + SCALE / 5), )
 
         self.rect = self.image.get_rect()
-        
+
     def move(self, velocity):
         self.rect.x += velocity[0]
         self.rect.y += velocity[1]
-        
+
+
 class BlockSprite(pygame.sprite.Sprite):
     def __init__(self, chunk, blocks_x, blocks_y, SCALE):
         Sprite.__init__(self)
@@ -82,7 +85,7 @@ class BlockSprite(pygame.sprite.Sprite):
             self.chunk.end_sprite.move(velocity)
         except:
             pass
-        
+
     def remove(self):
         self.kill()
 
@@ -217,7 +220,7 @@ class PlayerSprite(pygame.sprite.Sprite):
             self.falling = True
 
     def update_camera_movement(self, movement):
-        self.rect.x -= movement
+        self.player.x -= movement
 
     def update(self):
         if self.player.direction:
@@ -345,19 +348,11 @@ class MonsterSprite(pygame.sprite.Sprite):
         if id in self.img_indexes:
             self.img_indexes.pop(id)
 
-    def update(self):
+    def update(self, **kwargs):
         if self.pos_update_count >= self.pos_update_per_frames:
             for monster in self.monsters:
                 if not monster.dying:
-                    monster.update(player_pos=PlayerSprite.get_or_create().pos)
-                    """
-                    if monster.jumping:
-                        monster.jump()
-                    elif monster.falling:
-                        monster.fail()
-                    else:
-                        monster.move()
-                    """
+                    monster.update(**kwargs)
 
             self.pos_update_count = 0
         else:
@@ -372,6 +367,7 @@ class MonsterSprite(pygame.sprite.Sprite):
             )
         if self.image_update_count >= self.image_update_per_frames:
             self.image_update_count = 0
+
 
 class FeatherSprite(pygame.sprite.Sprite):
     __feather_sprite = None
@@ -441,11 +437,12 @@ class FeatherSprite(pygame.sprite.Sprite):
         for i in to_be_removed:
             del self.feathers[i]
 
-    def update_camera_movement(self,movement):
+    def update_camera_movement(self, movement):
         for bird_id, feather in self.feathers.items():
             old_pos = feather.pos
             feather.pos = old_pos[0] - movement, old_pos[1]
-        
+
+
 class BirdLikeSprite(MonsterSprite):
     def __init__(self, birds, WIDTH, HEIGHT, SCALE):
         MonsterSprite.__init__(self, 16, 10)
@@ -491,8 +488,8 @@ class BirdLikeSprite(MonsterSprite):
             Sound.pop_sound(cry_sound)
             self.cry_count.pop(bird.id)
 
-    def update(self):
-        super(BirdLikeSprite, self).update()
+    def update(self, **kwargs):
+        super(BirdLikeSprite, self).update(**kwargs, right_offset=self.sprite_width, left_offset=self.sprite_width)
 
         for bird in self.monsters:
             if bird.is_dead:
@@ -543,15 +540,15 @@ class BirdLikeSprite(MonsterSprite):
         super(BirdLikeSprite, self).draw(mask)
         self.feather_sprite.draw(mask)
 
-
-    def update_camera_movement(self,movement):
+    def update_camera_movement(self, movement):
         for bird in self.monsters:
             bird.x = bird.x - movement
         self.feather_sprite.update_camera_movement(movement)
-        
+
+
 class GroundMonsterSprite(MonsterSprite):
-    def update(self):
-        super(GroundMonsterSprite, self).update()
+    def update(self, **kwargs):
+        super(GroundMonsterSprite, self).update(**kwargs)
         for monster in self.monsters:
             if monster.is_dead:
                 continue
@@ -580,23 +577,23 @@ class SpiderLikeSprite(GroundMonsterSprite):
 
     def _init_images(self):
         SPIDER_SPRITESHEET = SpriteSheet("sources/imgs/spider.png")
-        SPRITE_WIDTH = 128
-        SPRITE_HEIGHT = 124
+        self.sprite_width =128
+        self.sprite_height = 124
 
         self.left_move_images = [(i, 0) for i in range(12)]
-        self.left_move_images = load_images(SPIDER_SPRITESHEET, SPRITE_WIDTH, SPRITE_HEIGHT,
+        self.left_move_images = load_images(SPIDER_SPRITESHEET, self.sprite_width, self.sprite_height,
                                             (self.SCALE * 2, self.SCALE * 2),
                                             self.left_move_images)
 
         self.left_dead_images = [(i, 0) for i in range(16, 23)]
-        self.left_dead_images = load_images(SPIDER_SPRITESHEET, SPRITE_WIDTH, SPRITE_HEIGHT,
+        self.left_dead_images = load_images(SPIDER_SPRITESHEET, self.sprite_width, self.sprite_height,
                                             (self.SCALE * 2, self.SCALE * 2),
                                             self.left_dead_images)
 
         self.right_move_images = invert_images(self.left_move_images)
         self.right_dead_images = invert_images(self.left_dead_images)
 
-        self.left_attack_images = load_images(SPIDER_SPRITESHEET, SPRITE_WIDTH, SPRITE_HEIGHT,
+        self.left_attack_images = load_images(SPIDER_SPRITESHEET, self.sprite_width, self.sprite_height,
                                               (self.SCALE * 2, self.SCALE * 2),
                                               [(i, 0) for i in range(12, 17)])
 
@@ -604,16 +601,17 @@ class SpiderLikeSprite(GroundMonsterSprite):
 
         self.img_indexes = {m.id: 0 for m in self.monsters}
 
-    def update(self):
-        super(SpiderLikeSprite, self).update()
+    def update(self, **kwargs):
+        super(SpiderLikeSprite, self).update(**kwargs, right_offset=self.sprite_width, left_offset=self.sprite_width)
         for spider in self.monsters:
             if spider.is_dead:
                 self._remove_monster(spider)
 
-    def update_camera_movement(self,movement):
+    def update_camera_movement(self, movement):
         for spider in self.monsters:
             spider.x -= movement
-            
+
+
 class TurtleLikeSprite(GroundMonsterSprite):
     def __init__(self, turtles, WIDTH, HEIGHT, SCALE):
         MonsterSprite.__init__(self, 25, 10)
@@ -634,10 +632,10 @@ class TurtleLikeSprite(GroundMonsterSprite):
 
     def _init_images(self):
         TURTLE_SPRITESHEET = SpriteSheet("sources/imgs/tortoise.png")
-        SPRITE_WIDTH = 33
-        SPRITE_HEIGHT = 42
+        self.sprite_width = 33
+        self.sprite_height = 42
 
-        self.left_move_images = load_images(TURTLE_SPRITESHEET, SPRITE_WIDTH, SPRITE_HEIGHT,
+        self.left_move_images = load_images(TURTLE_SPRITESHEET, self.sprite_width, self.sprite_height,
                                             (self.SCALE * 2, self.SCALE * 2),
                                             [(i, 0) for i in range(3)])
 
@@ -648,7 +646,7 @@ class TurtleLikeSprite(GroundMonsterSprite):
         self.right_move_images = invert_images(self.left_move_images)
         self.right_dead_images = invert_images(self.left_dead_images)
 
-        self.left_attack_images = load_images(TURTLE_SPRITESHEET, SPRITE_WIDTH, SPRITE_HEIGHT,
+        self.left_attack_images = load_images(TURTLE_SPRITESHEET, self.sprite_width, self.sprite_height,
                                               (self.SCALE * 2, self.SCALE * 2),
                                               [(i, 2) for i in range(3)])
 
@@ -667,8 +665,8 @@ class TurtleLikeSprite(GroundMonsterSprite):
             Sound.pop_sound(cry_sound)
             self.sound_count.pop(turtle.id)
 
-    def update(self):
-        super(TurtleLikeSprite, self).update()
+    def update(self, **kwargs):
+        super(TurtleLikeSprite, self).update(**kwargs, right_offset=self.sprite_width * 2, left_offset=20)
         for turtle in self.monsters:
             if turtle.is_dead:
                 self._remove_monster(turtle)
@@ -711,9 +709,10 @@ class TurtleLikeSprite(GroundMonsterSprite):
             else:
                 self.sound_count[turtle.id]['step'].play(loops=-1)
 
-    def update_camera_movement(self,movement):
+    def update_camera_movement(self, movement):
         for turtle in self.monsters:
             turtle.x -= movement
+
 
 class WhaleSprite(MonsterSprite):
     def __init__(self, whales, SCALE):
@@ -747,8 +746,8 @@ class WhaleSprite(MonsterSprite):
 
         self.img_indexes = {m.id: 0 for m in self.monsters}
 
-    def update(self):
-        super(WhaleSprite, self).update()
+    def update(self, **kwargs):
+        super(WhaleSprite, self).update(**kwargs)
 
         for whale in self.monsters:
             if whale.id not in self.attack_count:
@@ -760,9 +759,11 @@ class WhaleSprite(MonsterSprite):
             else:
                 attack_count['during_attack'] = False
 
-    def update_camera_movement(self,movement):
+    def update_camera_movement(self, movement):
         for whale in self.monsters:
             whale.x -= movement
+
+
 def load_images(spritesheet, sprite_width, sprite_height, scale, positions):
     return [pygame.transform.scale(
         spritesheet.image_at(
