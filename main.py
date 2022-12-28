@@ -81,7 +81,7 @@ if __name__ == "__main__":
         opened_menu = False
         hardmode = False
 
-        world = World("easy", 1)
+        world = World("easy", 2)
         world.startWorld()
         moved = 0
         chunk_sprites = {}
@@ -120,18 +120,12 @@ if __name__ == "__main__":
                     player.command(player.left_key)
                     if (world.current_chunk <= 0 or world.current_chunk >= len(world.world_chunks) - 1):
                         camera_move = False
-                        movement = -1
-                    else:
-                        movement = -1
-                        # monsters move with camera
+                    movement = -1
                 if lastKey[player.right_key]:
                     player.command(player.right_key)
                     if (world.current_chunk >= len(world.world_chunks) - 1 or world.current_chunk <= 0):
                         camera_move = False
-                        movement = 1
-                    else:
-                        movement = 1
-                        # monsters move with camera
+                    movement = 1
                 if lastKey[player.jump_key]:
                     if (not player_sprite.jumping and not player_sprite.falling):
                         player.command(player.jump_key)
@@ -143,14 +137,8 @@ if __name__ == "__main__":
                 menu.mainloop(screen)
             else:
                 # create cover surface
-                # mask.fill(0)
+                mask.fill(0)
 
-                # if (random.randint(1, 144) == 1):
-                #    waves.append(Wave(
-                #        [random.randint(0, 800), random.randint(0, 600)],
-                #       (random.randint(1, 100) / 100),
-                #        144,
-                #        [random.randint(0, 25) / 100, random.randint(25, 30) / 100]))
                 # world interaction
                 moved += movement
                 if int(moved / (SCALE * 16)) >= 1:
@@ -215,13 +203,11 @@ if __name__ == "__main__":
 
                 for wave in waves:
                     wave.update()
-                    # print(
-                    #    f"------------------------------------------\nR: {wave.radius}\nT: {wave.thicc}\nV: {wave.velocity}\nS: {wave.sound_interval}\n---------------------------")
-
-                # if player.dead:
-                #    menu.game_over()
-                #    menu.mainloop(screen)
-                #    sd.stop_all_sounds()
-                #    break
+                
+                if player.dead:
+                    menu.game_over()
+                    menu.mainloop(screen)
+                    #sd.stop_all_sounds()
+                    break
 
             pygame.display.flip()
