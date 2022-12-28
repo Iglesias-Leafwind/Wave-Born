@@ -19,6 +19,7 @@ class MonsterSprite(pygame.sprite.Sprite):
     def __init__(self, image_update_per_frames=0, pos_update_per_frames=0):
         Sprite.__init__(self)
         self.monsters: list
+        self.rects: dict
         self.left_move_images: list
         self.right_move_images: list
         self.img_indexes: dict
@@ -81,7 +82,7 @@ class MonsterSprite(pygame.sprite.Sprite):
         if self.pos_update_count >= self.pos_update_per_frames:
             for monster in self.monsters:
                 if not monster.dying:
-                    monster.update(**kwargs)
+                    monster.update(**kwargs, rect=self.rects[monster.id])
 
             self.pos_update_count = 0
         else:
@@ -90,10 +91,15 @@ class MonsterSprite(pygame.sprite.Sprite):
     def draw(self, mask):
         self.image_update_count += 1
         for monster in self.monsters:
+            image = self._next_image(monster)
             mask.blit(
-                self._next_image(monster),
+                image,
                 (monster.x, monster.y),
             )
+            rect = image.get_rect()
+            rect.x = monster.x
+            rect.y = monster.y
+            self.rects[monster.id] = rect
         if self.image_update_count >= self.image_update_per_frames:
             self.image_update_count = 0
 
@@ -112,6 +118,7 @@ class FeatherSprite(pygame.sprite.Sprite):
 
         self.image = self.left_image
         self.rect = self.image.get_rect()
+        self.rects = {f.id: self.rect for f in self.feathers}
         FeatherSprite.__feather_sprite = self
 
     @staticmethod
@@ -123,6 +130,7 @@ class FeatherSprite(pygame.sprite.Sprite):
 
     def add_feather(self, bird_id, feather):
         self.feathers[bird_id] = feather
+        self.rects[feather.id] = self.rect
 
     def feather_flying(self, bird_id):
         return bird_id in self.feathers
@@ -145,12 +153,12 @@ class FeatherSprite(pygame.sprite.Sprite):
             return self.right_image
         return self.left_image
 
-    def _has_collision_or_out_of_world(self, feather_pos, WIDTH, HEIGHT):
+    def _has_collision_or_out_of_world(self, feather, WIDTH, HEIGHT):
         player = PlayerSprite.get_or_create()
-        if player.has_collision_with(feather_pos[0], feather_pos[1]):
+        if player.has_collision_with(self.rects[feather.id]):
             player.dead()
             return True
-        if feather_pos[0] < 0 or feather_pos[0] > WIDTH or feather_pos[1] > HEIGHT:
+        if feather.pos[0] < 0 or feather.pos[0] > WIDTH or feather.pos[1] > HEIGHT:
             return True
 
     def update(self):
@@ -158,12 +166,17 @@ class FeatherSprite(pygame.sprite.Sprite):
         for bird_id, feather in self.feathers.items():
             old_pos = feather.pos
             new_pos = old_pos[0] + feather.direction, old_pos[1] + 1
-            if self._has_collision_or_out_of_world(new_pos, self.WIDTH, self.HEIGHT):
+            if self._has_collision_or_out_of_world(feather, self.WIDTH, self.HEIGHT):
                 to_be_removed.append(bird_id)
             else:
                 feather.pos = new_pos
+                rect = self.image.get_rect()
+                rect.x = feather.pos[0]
+                rect.y = feather.pos[1]
+                self.rects[feather.id] = rect
 
         for i in to_be_removed:
+            del self.rects[self.feathers[i].id]
             del self.feathers[i]
 
     def update_camera_movement(self, movement):
@@ -192,6 +205,7 @@ class BirdLikeSprite(MonsterSprite):
         self._init_images()
         self.image = self.left_move_images[0]
         self.rect = self.image.get_rect()
+        self.rects = {m.id: self.image.get_rect() for m in self.monsters}
         self.mask = pygame.mask.from_surface(self.image)
         BirdLikeSprite._single_ton = self
 
@@ -292,7 +306,7 @@ class SpiderLikeSprite(GroundMonsterSprite):
     def __init__(self, spiders, WIDTH, HEIGHT, SCALE):
         MonsterSprite.__init__(self, 32, 10)
 
-        self.monsters: list[SpiderLike] = spiders
+        self.monsters = spiders
         self.cry_interval = 10
         self.cry_count = {}
         self.SCALE = SCALE
@@ -301,12 +315,14 @@ class SpiderLikeSprite(GroundMonsterSprite):
         self._init_images()
         self.image = self.left_move_images[0]
         self.rect = self.image.get_rect()
+        
+        self.rects = {m.id: self.image.get_rect() for m in self.monsters}
         self.mask = pygame.mask.from_surface(self.image)
         SpiderLikeSprite._single_ton = self
 
     def _init_images(self):
         SPIDER_SPRITESHEET = SpriteSheet("sources/imgs/spider.png")
-        self.sprite_width =128
+        self.sprite_width = 128
         self.sprite_height = 124
 
         self.left_move_images = [(i, 0) for i in range(12)]
@@ -356,6 +372,7 @@ class TurtleLikeSprite(GroundMonsterSprite):
         self._init_images()
         self.image = self.left_move_images[0]
         self.rect = self.image.get_rect()
+        self.rects = {m.id: self.image.get_rect() for m in self.monsters}
         self.mask = pygame.mask.from_surface(self.image)
         TurtleLikeSprite._single_ton = self
 
@@ -454,6 +471,7 @@ class WhaleSprite(MonsterSprite):
         self._init_images()
         self.image = self.left_move_images[0]
         self.rect = self.image.get_rect()
+        self.rects = {m.id: self.image.get_rect() for m in self.monsters}
         self.mask = pygame.mask.from_surface(self.image)
         WhaleSprite._single_ton = self
 

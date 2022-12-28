@@ -183,9 +183,17 @@ class Monster:
 
 
 class Feather:
+    _ID = 0
+
     def __init__(self, pos, direction):
         self.pos = pos
         self.direction = direction
+        self.id = self._next_id()
+
+    def _next_id(self):
+        id = Feather._ID
+        Feather._ID = id + 1
+        return id
 
 
 class BirdLike(Monster):
@@ -205,7 +213,7 @@ class BirdLike(Monster):
 
         event = None
         player = Player.SPRITE
-        if player.stepped_on(self.x, self.y) or self.out_of_world():
+        if player.stepped_on(kwargs['rect']) or self.out_of_world():
             event = Event.DEAD
         elif self.fsm.current == Attack:
             event = Event.MOVE
@@ -229,7 +237,7 @@ class GroundMonster(Monster):
     TRANSITIONS = {
         Event.ATTACK: [Transition(Move, Attack)],
         Event.JUMP: [Transition(Attack, Jump)],
-        Event.FAIL: [Transition(Jump, Fail)],
+        Event.FAIL: [Transition(Jump, Fail), Transition(Move, Fail)],
         Event.MOVE: [Transition(Fail, Move)],
         Event.DYING: [
             Transition(Move, Dead),
@@ -258,7 +266,7 @@ class GroundMonster(Monster):
         super(GroundMonster, self).update(**kwargs)
         event = None
         player = Player.SPRITE
-        if player.stepped_on(self.x, self.y):
+        if player.stepped_on(kwargs['rect']):
             event = Event.DYING
         elif self.out_of_world():
             event = Event.DEAD
@@ -276,6 +284,10 @@ class GroundMonster(Monster):
                 else:
                     self.direction = 1
                 event = Event.ATTACK
+        elif self.fsm.current == Move:
+            if not self.step_on_wall():
+                event = Event.FAIL
+                self.start_fail()
 
         self.fsm.update(event, self)
 
