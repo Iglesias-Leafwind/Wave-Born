@@ -9,6 +9,8 @@ from models.sound import Sound
 from sprites.spritesheet import SpriteSheet
 from sprites.utils import load_images
 
+from models.wave import Wave, Waves
+
 CELL_SIZE = 64
 ACC = 0.0975
 
@@ -160,6 +162,13 @@ class PlayerSprite(pygame.sprite.Sprite):
                 self.running = False
             else:
                 self.running = False
+
+            if(self.running and not self.falling and not self.jumping):
+                if random.randint(0,5) == 5:
+                    wave = Wave([self.rect.x+self.SCALE/2, self.rect.y+self.SCALE],
+                            random.randint(5, 10), 144,
+                                    [0, 0.08])
+                    Waves.get_or_create().add_wave(wave)
 
             if self.player.direction != Directions.UP:
                 # update the position when the direction is different of UP
