@@ -3,6 +3,7 @@ from os import listdir
 from os.path import isfile, join
 import random
 import copy
+import pygame
 
 
 def getPossibleChunks(chunk_list, prev_chunk, check_order):
@@ -19,9 +20,11 @@ class World:
 
     def __init__(self, difficulty, time_limit):
         self.difficulty = difficulty
-        self.time_limit = time_limit  # in minutes
+        self.time_limit = time_limit*2  # in minutes
         self.num_chunks = int((time_limit * 60) / 8)
-
+        self.start_timer = pygame.time.get_ticks()
+        self.font = pygame.font.SysFont('Comic Sans MS', 32)
+    
         self.current_chunk = 0
         self.moved = 0
         self.loaded_chunks = [None, None, None, None, None]
@@ -62,8 +65,9 @@ class World:
             print("Not possible to generate chunks given all possibilities")
             return None
         self.world_chunks.append(self.end)
-
+        
     def startWorld(self):
+        self.start_timer = pygame.time.get_ticks()
         for chunk in range(0, 3):
             self.loaded_chunks[chunk + 2] = self.world_chunks[chunk]
             self.loaded_chunks[chunk + 2].update(-chunk * 16 * 32)
@@ -115,3 +119,19 @@ class World:
         if cls._singleton:
             return cls._singleton
         return cls(**kwargs)
+
+    def get_passed_seconds(self):
+        return ((pygame.time.get_ticks()-self.start_timer)/1000)
+
+    def get_passed_time_string(self):
+        time_passed = self.get_passed_seconds()
+        time_left = self.time_limit*60 - time_passed
+        minutes, seconds = divmod(time_left, 60)
+        minutes = int(minutes)
+        seconds = int(seconds)
+        return f'{minutes:02d}:{seconds:02d}'
+    
+    def get_time_passed_surface(self):
+        return self.font.render(self.get_passed_time_string(),False,(255,255,255))
+    def timeout(self):
+        return self.get_passed_seconds() > (self.time_limit*60)

@@ -24,6 +24,7 @@ if __name__ == "__main__":
 
     # init pygame
     menu = None
+    pygame.font.init()
     while menu is None or not menu.exit:
         mixer.init()
         music.set_volume(0.5)
@@ -196,6 +197,8 @@ if __name__ == "__main__":
 
                 # draw transparent circle and update display
                 screen.blit(mask, (0, 0))
+                screen.blit(world.get_time_passed_surface(), (0,0))
+                
                 for wave in waves:
                     if (wave.checkLimits(WIDTH, HEIGHT)):
                         waves.remove(wave)
@@ -203,10 +206,10 @@ if __name__ == "__main__":
                 for wave in waves:
                     wave.update()
                 
-                if player.dead:
+                if player.dead or world.timeout():
                     menu.game_over()
                     menu.mainloop(screen)
                     #sd.stop_all_sounds()
                     break
-
+            
             pygame.display.flip()
