@@ -143,7 +143,7 @@ class PlayerSprite(pygame.sprite.Sprite):
             self.falling = True
 
     def update_camera_movement(self, movement):
-        self.player.x -= movement
+        self.rect.x -= movement
 
     def update(self):
         if self.player.direction:

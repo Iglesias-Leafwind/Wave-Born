@@ -84,12 +84,11 @@ if __name__ == "__main__":
         world = World("easy", 1)
         world.startWorld()
         moved = 0
-        chunk_sprites = []
-        for chunk in world.loaded_chunks:
+        chunk_sprites = {}
+        for idx,chunk in enumerate(world.loaded_chunks):
             if chunk:
-                chunk_sprites.append(BlockSprite(chunk, blocks_x, blocks_y, SCALE))
-                all_sprites.add(chunk_sprites[-1])
-        Monster.WALLS = world.loaded_chunks
+                chunk_sprites[idx-2] = BlockSprite(chunk, blocks_x, blocks_y, SCALE)
+                all_sprites.add(chunk_sprites[idx-2])
 
         while 1:
             camera_move = True
@@ -119,10 +118,7 @@ if __name__ == "__main__":
             if lastKey:
                 if lastKey[player.left_key]:
                     player.command(player.left_key)
-                    if (world.current_chunk == 0):
-                        pass
-                        # player moves
-                    elif (world.current_chunk == len(world.world_chunks) - 1):
+                    if (world.current_chunk <= 0 or world.current_chunk >= len(world.world_chunks) - 1):
                         camera_move = False
                         movement = -1
                     else:
@@ -130,10 +126,7 @@ if __name__ == "__main__":
                         # monsters move with camera
                 if lastKey[player.right_key]:
                     player.command(player.right_key)
-                    if (world.current_chunk == len(world.world_chunks) - 1):
-                        pass
-                        # player moves
-                    elif (world.current_chunk == 0):
+                    if (world.current_chunk >= len(world.world_chunks) - 1 or world.current_chunk <= 0):
                         camera_move = False
                         movement = 1
                     else:
@@ -163,22 +156,33 @@ if __name__ == "__main__":
                 if int(moved / (SCALE * 16)) >= 1:
                     _, added = world.loadNextChunk()
                     if added:
-                        chunk_sprites.append(BlockSprite(added, blocks_x, blocks_y, SCALE))
-                        all_sprites.add(chunk_sprites[-1])
+                        if world.current_chunk+2 not in chunk_sprites:
+                            chunk_sprites[world.current_chunk+2] = BlockSprite(added, blocks_x, blocks_y, SCALE)
+                        all_sprites.add(chunk_sprites[world.current_chunk+2])
                         try:
+                            all_sprites.remove(chunk_sprites[world.current_chunk-2])
                             all_sprites.add(added.end_sprite)
                         except:
                             pass
                     moved = 0
                 elif (int(moved / (SCALE * 16)) <= -1):
-                    _, _ = world.loadPrevChunk()
+                    _, added = world.loadPrevChunk()
+                    if added:
+                        all_sprites.add(chunk_sprites[world.current_chunk-2])
+                        try:
+                            all_sprites.remove(chunk_sprites[world.current_chunk+2])
+                            all_sprites.remove(added.end_sprite)
+                        except:
+                            pass
                     moved = 0
                 if (camera_move):
                     # world movement
                     world.moveWorld(movement)
-                    for chunk_sprite in chunk_sprites:
-                        chunk_sprite.move((-movement, 0))
-
+                    for i in range(world.current_chunk-2,world.current_chunk+3):
+                        try:
+                            chunk_sprites[i].move((-movement, 0))
+                        except:
+                            pass
                     # counter entity movement with world
                     player_sprite.update_camera_movement(movement)
                     bird_sprite.update_camera_movement(movement)
