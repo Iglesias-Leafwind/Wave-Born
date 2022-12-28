@@ -10,7 +10,7 @@ from menu.menu import Menu
 
 from sprites.sprites import PlayerSprite, BirdLikeSprite, SpiderLikeSprite, WhaleSprite, BackgroundSprite, \
     TurtleLikeSprite, BlockSprite, BackgroundSprite
-from models.sound import Sound as sd
+
 if __name__ == "__main__":
     WIDTH = 1024
     HEIGHT = 640

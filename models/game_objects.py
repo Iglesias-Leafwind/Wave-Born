@@ -65,7 +65,7 @@ class Dying(State):
 
     @classmethod
     def enter(cls, monster):
-        monster.is_dead = True
+        monster.dead()
 
 
 class Dead(State):
@@ -74,7 +74,7 @@ class Dead(State):
 
     @classmethod
     def update(cls, monster):
-        monster.dead()
+        monster.is_dead = True
 
 
 STATES = [Move, Attack, Jump, Fail, Dead]
@@ -135,7 +135,7 @@ class Player:
 class Wave:
     def __init__(self, center, velocity, clockticks, sound_interval):
         # sound_interval = (sound_start,sound_end)
-        clockticks = 3*clockticks/4
+        clockticks = 3 * clockticks / 4
         self.radius = -velocity * clockticks * sound_interval[0] if sound_interval[0] > 0 else 0
         self.x = center[0]
         self.y = center[1]
@@ -348,7 +348,12 @@ class GroundMonster(Monster):
             Transition(Jump, Dead),
             Transition(Fail, Dead),
         ],
-        Event.DEAD: [Transition(Dying, Dead)]
+        Event.DEAD: [
+            Transition(Dying, Dead),
+            Transition(Move, Dead),
+            Transition(Attack, Dead),
+            Transition(Jump, Dead),
+            Transition(Fail, Dead), ]
     }
 
     def __init__(self, width, height, start_width=0, stop_width=0, start_height=0,
