@@ -81,8 +81,9 @@ class MonsterSprite(pygame.sprite.Sprite):
     def update(self, **kwargs):
         if self.pos_update_count >= self.pos_update_per_frames:
             for monster in self.monsters:
+                self.image, self.rect = self.rects[monster.id]
                 if not monster.dying:
-                    monster.update(**kwargs, sprite=self.rects[monster.id])
+                    monster.update(**kwargs, sprite=self)
 
             self.pos_update_count = 0
         else:
@@ -99,7 +100,7 @@ class MonsterSprite(pygame.sprite.Sprite):
             rect = image.get_rect()
             rect.x = monster.x
             rect.y = monster.y
-            self.rects[monster.id] = (pygame.mask.from_surface(image), rect)
+            self.rects[monster.id] = (image, rect)
         if self.image_update_count >= self.image_update_per_frames:
             self.image_update_count = 0
 

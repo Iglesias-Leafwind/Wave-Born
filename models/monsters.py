@@ -1,6 +1,8 @@
 import random
 import time
 
+import pygame
+
 from models.fsm import Transition, Move, Attack, Jump, Fail, Dead, Event, Dying, FSM, MoveInAir
 from models.player import Player
 from models.wave import Wave, Waves
@@ -134,21 +136,20 @@ class Monster:
 
     def turn_dirc_if_hit_wall(self):
         blocks = World.get_or_create().get_blocks()
-        mask = self.sprite[0]
-        rect = self.sprite[1]
         for b in blocks:
-            offset_x = rect.x - b.rect.x
-            offset_y = rect.y - b.rect.y
-            if self.direction == 1 and b.mask.overlap(mask, (offset_x, offset_y)) and rect.midleft[0] > b.rect.midleft[0]:
-                if not self.attacking:
-                    self.direction = -1
-                    self.x -= 32
-                return True
-            elif self.direction == -1 and b.mask.overlap(mask, (offset_x, offset_y)) and rect.midright[0] < b.rect.midright[0]:
-                if not self.attacking:
-                    self.direction = 1
-                    self.x += 32
-                return True
+
+            if self.direction == 1:
+                if pygame.sprite.collide_mask(b, self.sprite):
+                    if not self.attacking:
+                        self.direction = -1
+                        self.x -= 32
+                    return True
+            elif self.direction == -1:
+                if pygame.sprite.collide_mask(b, self.sprite):
+                    if not self.attacking:
+                        self.direction = 1
+                        self.x += 32
+                    return True
 
     def check_inside_walls(self):
         blocks = World.get_or_create().get_blocks()
@@ -158,12 +159,8 @@ class Monster:
 
     def step_on_wall(self):
         blocks = World.get_or_create().get_blocks()
-        mask = self.sprite[0]
-        rect = self.sprite[1]
         for b in blocks:
-            offset_x = rect.x - b.rect.x
-            offset_y = rect.y - b.rect.y
-            if b.mask.overlap(mask, (offset_x, offset_y)) and rect.midtop[1] > b.rect.midtop[1]:
+            if pygame.sprite.collide_mask(b, self.sprite):
                 return True
 
     @classmethod
@@ -221,7 +218,7 @@ class BirdLike(Monster):
 
         event = None
         player = Player.SPRITE
-        if player.stepped_on(self.sprite[1]) or self.out_of_world():
+        if player.stepped_on(self.sprite.rect) or self.out_of_world():
             event = Event.DEAD
         elif self.fsm.current == Attack:
             event = Event.MOVE
@@ -249,10 +246,10 @@ class GroundMonster(Monster):
         Event.MOVE: [Transition(Fail, Move)],
         Event.MOVE_IN_AIR: [Transition(Move, MoveInAir)],
         Event.DYING: [
-            Transition(Move, Dead),
-            Transition(Attack, Dead),
-            Transition(Jump, Dead),
-            Transition(Fail, Dead),
+            Transition(Move, Dying),
+            Transition(Attack, Dying),
+            Transition(Jump, Dying),
+            Transition(Fail, Dying),
         ],
         Event.DEAD: [
             Transition(Dying, Dead),
@@ -276,7 +273,7 @@ class GroundMonster(Monster):
         super(GroundMonster, self).update(**kwargs)
         event = None
         player = Player.SPRITE
-        if player.stepped_on(self.sprite[1]):
+        if player.stepped_on(self.sprite.rect):
             event = Event.DYING
         elif self.out_of_world():
             event = Event.DEAD
