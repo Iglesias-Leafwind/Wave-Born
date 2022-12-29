@@ -1,7 +1,7 @@
 import random
 import time
 
-from models.fsm import Transition, Move, Attack, Jump, Fail, Dead, Event, Dying, FSM
+from models.fsm import Transition, Move, Attack, Jump, Fail, Dead, Event, Dying, FSM, MoveInAir
 from models.player import Player
 from models.wave import Wave, Waves
 from models.world import World
@@ -57,7 +57,7 @@ class Monster:
         self.spawn()
 
     def update(self, **kwargs):
-        pass
+        self.sprite = kwargs['sprite']
 
     def want_attack(self):
         return random.random() <= self.attack_prob
@@ -132,30 +132,38 @@ class Monster:
     def out_of_world(self):
         return self.x < 0 or self.x > self.width or self.y > self.height or self.y < 0
 
-    def turn_dirc_if_hit_wall(self, turn=True):
+    def turn_dirc_if_hit_wall(self):
         blocks = World.get_or_create().get_blocks()
+        mask = self.sprite[0]
+        rect = self.sprite[1]
         for b in blocks:
-            if self.direction == 1 and b.x > self.x and abs(b.x - self.x) < self.right_offset and abs(
-                    b.y - self.y) <= 16:
-                if turn:
+            offset_x = rect.x - b.rect.x
+            offset_y = rect.y - b.rect.y
+            if self.direction == 1 and b.mask.overlap(mask, (offset_x, offset_y)) and rect.midleft[0] > b.rect.midleft[0]:
+                if not self.attacking:
                     self.direction = -1
+                    self.x -= 32
                 return True
-            elif self.direction == -1 and self.x > b.x and abs(b.x - self.x) < self.left_offset and abs(
-                    b.y - self.y) <= 16:
-                if turn:
+            elif self.direction == -1 and b.mask.overlap(mask, (offset_x, offset_y)) and rect.midright[0] < b.rect.midright[0]:
+                if not self.attacking:
                     self.direction = 1
+                    self.x += 32
                 return True
 
     def check_inside_walls(self):
         blocks = World.get_or_create().get_blocks()
         for b in blocks:
-            if abs(self.x - b.x) < 32 and abs(self.y - b.y) < 32:
+            if abs(self.x - b.rect.x) < 32 and abs(self.y - b.rect.y) < 32:
                 return True
 
     def step_on_wall(self):
         blocks = World.get_or_create().get_blocks()
+        mask = self.sprite[0]
+        rect = self.sprite[1]
         for b in blocks:
-            if self.falling and abs(b.x - self.x) < 32 and b.y > self.y and abs(b.y - self.y) < 16:
+            offset_x = rect.x - b.rect.x
+            offset_y = rect.y - b.rect.y
+            if b.mask.overlap(mask, (offset_x, offset_y)) and rect.midtop[1] > b.rect.midtop[1]:
                 return True
 
     @classmethod
@@ -213,7 +221,7 @@ class BirdLike(Monster):
 
         event = None
         player = Player.SPRITE
-        if player.stepped_on(kwargs['rect']) or self.out_of_world():
+        if player.stepped_on(self.sprite[1]) or self.out_of_world():
             event = Event.DEAD
         elif self.fsm.current == Attack:
             event = Event.MOVE
@@ -237,8 +245,9 @@ class GroundMonster(Monster):
     TRANSITIONS = {
         Event.ATTACK: [Transition(Move, Attack)],
         Event.JUMP: [Transition(Attack, Jump)],
-        Event.FAIL: [Transition(Jump, Fail), Transition(Move, Fail)],
+        Event.FAIL: [Transition(Jump, Fail), Transition(MoveInAir, Fail)],
         Event.MOVE: [Transition(Fail, Move)],
+        Event.MOVE_IN_AIR: [Transition(Move, MoveInAir)],
         Event.DYING: [
             Transition(Move, Dead),
             Transition(Attack, Dead),
@@ -261,12 +270,13 @@ class GroundMonster(Monster):
                                             jump_dist_x,
                                             jump_dist_y, attack_prob, cry_prob)
         self.fsm = FSM(STATES, GroundMonster.TRANSITIONS)
+        self.fail_speed = 1
 
     def update(self, **kwargs):
         super(GroundMonster, self).update(**kwargs)
         event = None
         player = Player.SPRITE
-        if player.stepped_on(kwargs['rect']):
+        if player.stepped_on(self.sprite[1]):
             event = Event.DYING
         elif self.out_of_world():
             event = Event.DEAD
@@ -274,6 +284,7 @@ class GroundMonster(Monster):
             event = Event.FAIL
         elif self.fsm.current == Fail and not self.falling:
             event = Event.MOVE
+            self.fail_speed = 1
         elif self.fsm.current == Attack:
             event = Event.JUMP
         elif self.fsm.current == Move and \
@@ -286,8 +297,10 @@ class GroundMonster(Monster):
                 event = Event.ATTACK
         elif self.fsm.current == Move:
             if not self.step_on_wall():
-                event = Event.FAIL
-                self.start_fail()
+                event = Event.MOVE_IN_AIR
+        elif self.fsm.current == MoveInAir:
+            event = Event.FAIL
+            self.fail_speed = 2
 
         self.fsm.update(event, self)
 
@@ -304,7 +317,7 @@ class GroundMonster(Monster):
     def jump(self, **kwargs):
         old_pos = self.pos
         if self.jump_count < self.jump_limit:
-            if self.turn_dirc_if_hit_wall(turn=False):
+            if self.turn_dirc_if_hit_wall():
                 self.pos = old_pos[0], \
                            old_pos[1] - self.jump_dist_y
                 print(f"{self.id} {self.pos}")
@@ -322,19 +335,21 @@ class GroundMonster(Monster):
 
     def fail(self, **kwargs):
         old_pos = self.pos
-        if self.jump_count >= 0:
-            if self.step_on_wall():
-                self.stop_fail()
-            else:
-                if self.turn_dirc_if_hit_wall(turn=False):
-                    self.pos = old_pos[0], \
-                               old_pos[1] + self.jump_dist_y
-                else:
-                    self.pos = old_pos[0] + self.jump_dist_x * self.direction, \
-                               old_pos[1] + self.jump_dist_y
-                self.jump_count -= 1
+        if self.attacking and self.jump_count > 0:
+            self._fail(old_pos)
+            self.jump_count -= 1
+        elif not self.step_on_wall():
+            self._fail(old_pos)
         else:
             self.stop_fail()
+
+    def _fail(self, old_pos):
+        if self.turn_dirc_if_hit_wall():
+            self.pos = old_pos[0], \
+                       old_pos[1] + self.jump_dist_y * self.fail_speed
+        else:
+            self.pos = old_pos[0] + self.jump_dist_x * self.direction, \
+                       old_pos[1] + self.jump_dist_y * self.fail_speed
 
     def stop_fail(self):
         self.jump_count = 0
@@ -422,6 +437,7 @@ class Whale(Monster):
         Whale.SPRITE.change_monster_state(self)
 
     def update(self, **kwargs):
+        super(Whale, self).update(**kwargs)
         event = None
         if self.out_of_world():
             event = Event.DEAD

@@ -82,7 +82,7 @@ class MonsterSprite(pygame.sprite.Sprite):
         if self.pos_update_count >= self.pos_update_per_frames:
             for monster in self.monsters:
                 if not monster.dying:
-                    monster.update(**kwargs, rect=self.rects[monster.id])
+                    monster.update(**kwargs, sprite=self.rects[monster.id])
 
             self.pos_update_count = 0
         else:
@@ -99,7 +99,7 @@ class MonsterSprite(pygame.sprite.Sprite):
             rect = image.get_rect()
             rect.x = monster.x
             rect.y = monster.y
-            self.rects[monster.id] = rect
+            self.rects[monster.id] = (pygame.mask.from_surface(image), rect)
         if self.image_update_count >= self.image_update_per_frames:
             self.image_update_count = 0
 
@@ -205,7 +205,7 @@ class BirdLikeSprite(MonsterSprite):
         self._init_images()
         self.image = self.left_move_images[0]
         self.rect = self.image.get_rect()
-        self.rects = {m.id: self.image.get_rect() for m in self.monsters}
+        self.rects = {m.id: (self.image, self.image.get_rect()) for m in self.monsters}
         self.mask = pygame.mask.from_surface(self.image)
         BirdLikeSprite._single_ton = self
 
@@ -316,7 +316,7 @@ class SpiderLikeSprite(GroundMonsterSprite):
         self.image = self.left_move_images[0]
         self.rect = self.image.get_rect()
         
-        self.rects = {m.id: self.image.get_rect() for m in self.monsters}
+        self.rects = {m.id: (self.image, self.image.get_rect()) for m in self.monsters}
         self.mask = pygame.mask.from_surface(self.image)
         SpiderLikeSprite._single_ton = self
 
@@ -372,7 +372,7 @@ class TurtleLikeSprite(GroundMonsterSprite):
         self._init_images()
         self.image = self.left_move_images[0]
         self.rect = self.image.get_rect()
-        self.rects = {m.id: self.image.get_rect() for m in self.monsters}
+        self.rects = {m.id: (self.image, self.image.get_rect()) for m in self.monsters}
         self.mask = pygame.mask.from_surface(self.image)
         TurtleLikeSprite._single_ton = self
 
@@ -471,7 +471,7 @@ class WhaleSprite(MonsterSprite):
         self._init_images()
         self.image = self.left_move_images[0]
         self.rect = self.image.get_rect()
-        self.rects = {m.id: self.image.get_rect() for m in self.monsters}
+        self.rects = {m.id: (self.image, self.image.get_rect()) for m in self.monsters}
         self.mask = pygame.mask.from_surface(self.image)
         WhaleSprite._single_ton = self
 

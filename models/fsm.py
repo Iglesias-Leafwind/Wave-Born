@@ -56,11 +56,12 @@ class FSM:
 
 class Event(Enum):
     MOVE = 1,
-    ATTACK = 2,
-    JUMP = 3,
-    FAIL = 4,
-    DYING = 5,
-    DEAD = 6
+    MOVE_IN_AIR = 2,
+    ATTACK = 3,
+    JUMP = 4,
+    FAIL = 5,
+    DYING = 6,
+    DEAD = 7
 
 
 class Move(State):
@@ -75,6 +76,14 @@ class Move(State):
     def enter(cls, monster):
         monster.attacking = False
 
+class MoveInAir(State):
+    def __init__(self):
+        super().__init__(self.__class__.__name__)
+
+
+    @classmethod
+    def enter(cls, monster):
+        monster.start_fail()
 
 class Attack(State):
     def __init__(self):

@@ -125,12 +125,8 @@ class World:
             self.loaded_chunks[0] = None
         return removed, None
 
-    def get_blocks(self):
-        block_lists = [w.blocks for w in self.loaded_chunks if w]
-        blocks = []
-        for bl in block_lists:
-            blocks.extend(bl)
-        return blocks
+    def get_blocks(self) -> list[BlockSprite]:
+        return [w for w in self.loaded_chunks if w]
 
     @classmethod
     def get_or_create(cls, **kwargs):

@@ -8,7 +8,6 @@ from models.wave import Waves
 from models.world import World
 from menu.menu import Menu
 from sprites.background_sprite import BackgroundSprite
-from sprites.chunk_sprites import BlockSprite
 from sprites.monster_sprites import SpiderLikeSprite, BirdLikeSprite, TurtleLikeSprite, WhaleSprite
 from sprites.player_sprite import PlayerSprite
 
@@ -54,7 +53,7 @@ if __name__ == "__main__":
 
         spider = SpiderLike(width=WIDTH, height=HEIGHT, start_width=100, stop_width=WIDTH, stop_height=470,
                             attack_prob=0.05)
-        spiders = [spawner.spawn_monster(spider) for _ in range(1)]
+        spiders = [spawner.spawn_monster(spider) for _ in range(3)]
         spider_sprite = SpiderLikeSprite(spiders, WIDTH, HEIGHT, SCALE)
         SpiderLike.SPRITE = spider_sprite
 
@@ -204,9 +203,9 @@ if __name__ == "__main__":
                 for wave in waves:
                     wave.update()
                 
-                if player.dead or world.timeout():
-                    menu.game_over()
-                    menu.mainloop(screen)
+                #if player.dead or world.timeout():
+                #    menu.game_over()
+                #    menu.mainloop(screen)
                     #sd.stop_all_sounds()
-                    break
+                #    break
             pygame.display.flip()

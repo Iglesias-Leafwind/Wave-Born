@@ -44,6 +44,7 @@ class BlockSprite(pygame.sprite.Sprite):
         for idx, image in enumerate(images):
             self.image.blit(image, (rects[idx].x - self.rect.left,
                                     rects[idx].y - self.rect.top))
+        self.mask = pygame.mask.from_surface(self.image)
 
     def move(self, velocity):
         self.rect.move_ip(velocity)

@@ -207,10 +207,10 @@ class PlayerSprite(pygame.sprite.Sprite):
         for enemy in self.enemies:
             enemy_sprite = enemy.get_or_create()
             for monster in enemy_sprite.monsters:
-                if not monster.dying and self.stepped_on(enemy_sprite.rects[monster.id]):
+                if not monster.dying and self.stepped_on(enemy_sprite.rects[monster.id][1]):
                     enemy_sprite.change_monster_state(monster)
                     monster.dead()
                     self._start_jump(stepped=True)
-                elif not monster.dying and self.has_collision_with(enemy_sprite.rects[monster.id]):
+                elif not monster.dying and self.has_collision_with(enemy_sprite.rects[monster.id][1]):
                     self.dead()
                     return
