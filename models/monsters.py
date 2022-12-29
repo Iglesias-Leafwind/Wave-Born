@@ -136,18 +136,14 @@ class Monster:
     def turn_dirc_if_hit_wall(self):
         blocks = World.get_or_create().get_blocks()
         for b in blocks:
-            if self.direction == 1 and pygame.sprite.collide_mask(b, self.sprite):
-                if not self.attacking:
-                    self.direction = -1
-                    self.sprite.rect.x -= 32
-                    self.x -= 32
+            self.sprite.rect.x += self.offset * self.direction
+            if pygame.sprite.collide_mask(b, self.sprite):
+                self.sprite.rect.x -= self.offset * self.direction
+                if not self.attacking and not self.falling:
+                    self.direction *= -1
                 return True
-            elif self.direction == -1 and pygame.sprite.collide_mask(b, self.sprite):
-                if not self.attacking:
-                    self.direction = 1
-                    self.sprite.rect.x += 32
-                    self.x += 32
-                return True
+            self.sprite.rect.x -= self.offset * self.direction
+
 
     def check_inside_walls(self):
         blocks = World.get_or_create().get_blocks()
@@ -158,10 +154,16 @@ class Monster:
     def step_on_wall(self):
         blocks = World.get_or_create().get_blocks()
         for b in blocks:
-            self.sprite.rect.y += self.offset
+            self.sprite.rect.y += 5
             if pygame.sprite.collide_mask(b, self.sprite):
-                self.sprite.rect.y -= self.offset
+                self.sprite.rect.x -= 5 * self.direction
+                self.sprite.rect.y -= 5
+                if pygame.sprite.collide_mask(b, self.sprite):
+                    self.sprite.rect.x += 5 * self.direction
+                    continue
+                self.sprite.rect.x += 5 * self.direction
                 return True
+            self.sprite.rect.y -= 5
 
     @classmethod
     def get_sprite(cls):
