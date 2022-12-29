@@ -53,8 +53,7 @@ class Monster:
         self.attack_prob = attack_prob
         self.cry_prob = cry_prob
         self.id = self._get_id()
-        self.right_offset = 64
-        self.left_offset = 64
+        self.offset = 1
         self.fsm: FSM
         self.spawn()
 
@@ -137,19 +136,18 @@ class Monster:
     def turn_dirc_if_hit_wall(self):
         blocks = World.get_or_create().get_blocks()
         for b in blocks:
-
-            if self.direction == 1:
-                if pygame.sprite.collide_mask(b, self.sprite):
-                    if not self.attacking:
-                        self.direction = -1
-                        self.x -= 32
-                    return True
-            elif self.direction == -1:
-                if pygame.sprite.collide_mask(b, self.sprite):
-                    if not self.attacking:
-                        self.direction = 1
-                        self.x += 32
-                    return True
+            if self.direction == 1 and pygame.sprite.collide_mask(b, self.sprite):
+                if not self.attacking:
+                    self.direction = -1
+                    self.sprite.rect.x -= 32
+                    self.x -= 32
+                return True
+            elif self.direction == -1 and pygame.sprite.collide_mask(b, self.sprite):
+                if not self.attacking:
+                    self.direction = 1
+                    self.sprite.rect.x += 32
+                    self.x += 32
+                return True
 
     def check_inside_walls(self):
         blocks = World.get_or_create().get_blocks()
@@ -160,7 +158,9 @@ class Monster:
     def step_on_wall(self):
         blocks = World.get_or_create().get_blocks()
         for b in blocks:
+            self.sprite.rect.y += self.offset
             if pygame.sprite.collide_mask(b, self.sprite):
+                self.sprite.rect.y -= self.offset
                 return True
 
     @classmethod
@@ -284,6 +284,8 @@ class GroundMonster(Monster):
             self.fail_speed = 1
         elif self.fsm.current == Attack:
             event = Event.JUMP
+        elif self.fsm.current == Move and not self.step_on_wall():
+            event = Event.MOVE_IN_AIR
         elif self.fsm.current == Move and \
                 abs(player.y - self.y) < 32 and abs(player.x - self.x) < 128 and self.want_attack():
             if not self.attacking:
@@ -292,9 +294,6 @@ class GroundMonster(Monster):
                 else:
                     self.direction = 1
                 event = Event.ATTACK
-        elif self.fsm.current == Move:
-            if not self.step_on_wall():
-                event = Event.MOVE_IN_AIR
         elif self.fsm.current == MoveInAir:
             event = Event.FAIL
             self.fail_speed = 2
@@ -336,6 +335,7 @@ class GroundMonster(Monster):
             self._fail(old_pos)
             self.jump_count -= 1
         elif not self.step_on_wall():
+            self.attacking = False
             self._fail(old_pos)
         else:
             self.stop_fail()
@@ -373,8 +373,7 @@ class SpiderLike(GroundMonster):
                          jump_dist_y,
                          attack_prob=attack_prob)
 
-        self.right_offset = 64
-        self.left_offset = 50
+        self.offset = 3
 
     def clone(self) -> Monster:
         return SpiderLike(self.width, self.height, self.start_width, self.stop_width, self.start_height,
@@ -393,8 +392,7 @@ class TurtleLike(GroundMonster):
         super().__init__(width, height, start_width, stop_width, start_height, stop_height, jump_limit, jump_dist_x,
                          jump_dist_y,
                          attack_prob, cry_prob)
-        self.right_offset = 110
-        self.left_offset = 50
+        self.offset = 2
 
     def clone(self) -> Monster:
         return TurtleLike(self.width, self.height, self.start_width, self.stop_width, self.start_height,

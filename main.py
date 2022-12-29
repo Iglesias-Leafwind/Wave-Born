@@ -43,7 +43,7 @@ if __name__ == "__main__":
         player = Player(50, 500)
         Monster.set_user_pos(player.pos)
         player.controls(pygame.K_a, pygame.K_d, pygame.K_SPACE)
-        player_sprite = PlayerSprite(player, [SpiderLikeSprite, BirdLikeSprite, TurtleLikeSprite], SCALE)
+        player_sprite = PlayerSprite(HEIGHT, player, [SpiderLikeSprite, BirdLikeSprite, TurtleLikeSprite], SCALE)
         Player.SPRITE = player_sprite
 
         bird = BirdLike(width=WIDTH, height=HEIGHT, stop_width=WIDTH, stop_height=HEIGHT // 2)
@@ -51,15 +51,15 @@ if __name__ == "__main__":
         birds = [spawner.spawn_monster(bird) for _ in range(5)]
         bird_sprite = BirdLikeSprite(birds, WIDTH, HEIGHT, SCALE)
 
-        spider = SpiderLike(width=WIDTH, height=HEIGHT, start_width=100, stop_width=WIDTH, stop_height=470,
+        spider = SpiderLike(width=WIDTH, height=HEIGHT, start_width=100, stop_width=WIDTH, stop_height=460,
                             attack_prob=0.05)
-        spiders = [spawner.spawn_monster(spider) for _ in range(3)]
+        spiders = [spawner.spawn_monster(spider) for _ in range(1)]
         spider_sprite = SpiderLikeSprite(spiders, WIDTH, HEIGHT, SCALE)
         SpiderLike.SPRITE = spider_sprite
 
-        turtle = TurtleLike(width=WIDTH, height=HEIGHT, start_width=100, stop_width=WIDTH, stop_height=470,
+        turtle = TurtleLike(width=WIDTH, height=HEIGHT, start_width=100, stop_width=WIDTH, stop_height=460,
                             attack_prob=0.01)
-        turtles = [spawner.spawn_monster(turtle) for _ in range(3)]
+        turtles = [spawner.spawn_monster(turtle) for _ in range(1)]
         turtle_sprite = TurtleLikeSprite(turtles, WIDTH, HEIGHT, SCALE)
         TurtleLike.SPRITE = turtle_sprite
 

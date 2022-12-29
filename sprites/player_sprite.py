@@ -6,25 +6,26 @@ from pygame.sprite import Sprite
 
 from models.common import Directions
 from models.sound import Sound
+from models.world import World
 from sprites.spritesheet import SpriteSheet
 from sprites.utils import load_images
 
 from models.wave import Wave, Waves
 
 CELL_SIZE = 64
-ACC = 0.0975
 
 
 class PlayerSprite(pygame.sprite.Sprite):
     __player_sprite = None
 
-    def __init__(self, player, enemies, SCALE):
+    def __init__(self, height, player, enemies, SCALE):
         Sprite.__init__(self)
 
         PLAYER_SPRITESHEET = SpriteSheet("sources/imgs/player.png")
         SPRITE_WIDTH = 80
         SPRITE_HEIGHT = 72
 
+        self.height = height
         self.enemies = enemies
         self.player = player
         self.SCALE = SCALE
@@ -52,6 +53,7 @@ class PlayerSprite(pygame.sprite.Sprite):
         self.running = False  # is running
         self.without_moving = 0  # number of updates without moving action
         self.playing_running_sound = True
+        self.direction = 1
 
         # to avoid consecutive jumps
         # when the user presses the space key and never lift the finger, the sprite will jump forever :x
@@ -71,6 +73,31 @@ class PlayerSprite(pygame.sprite.Sprite):
     def stepped_on(self, monster_rect):
         if self.has_collision_with(monster_rect) and self.falling and self.rect.y < monster_rect.y:
             return True
+
+    def step_on_block(self):
+        blocks = World.get_or_create().get_blocks()
+        sprite = PlayerSprite.get_or_create()
+        for b in blocks:
+            self.rect.y += 5
+            if pygame.sprite.collide_mask(b, sprite):
+                self.rect.x -= 5 * self.direction
+                if not pygame.sprite.collide_mask(b, sprite):
+                    self.rect.x += 5 * self.direction
+                    continue
+                self.rect.x += 5 * self.direction
+                self.rect.y -= 5
+                return True
+            self.rect.y -= 5
+
+    def block_above_player(self):
+        blocks = World.get_or_create().get_blocks()
+        sprite = PlayerSprite.get_or_create()
+        for b in blocks:
+            self.rect.y -= 3
+            if pygame.sprite.collide_mask(b, sprite):
+                self.rect.y += 3
+                return True
+            self.rect.y += 3
 
     @property
     def pos(self):
@@ -113,15 +140,20 @@ class PlayerSprite(pygame.sprite.Sprite):
             self.jump_count = int(self.jump_limit * 0.7)
 
     def _jump(self):
-        self.rect.y -= 0.1 - ACC
-        self.jump_count += 0.5
+        if not self.block_above_player():
+            self.rect.y -= 0.1
+            self.jump_count += 0.5
+        else:
+            self.jumping = False
+            self.falling = True
 
     def _fail(self):
-        self.rect.y += 1
-        if self.rect.y >= self.pos_before_jump:
+        if self.step_on_block():
             self.falling = False
             self.land_sound.play()
             self.jump_count = 0
+        else:
+            self.rect.y += 1
 
     def _update_image(self, move_images):
         if move_images:
@@ -153,9 +185,11 @@ class PlayerSprite(pygame.sprite.Sprite):
             if self.player.direction == Directions.LEFT:
                 move_images = self.left_move_images
                 self.running = True
+                self.direction = 1
             elif self.player.direction == Directions.RIGHT:
                 move_images = self.right_move_images
                 self.running = True
+                self.direction = -1
             elif self.player.direction == Directions.UP:
                 if self.jump_count < self.jump_limit and not self.falling and self.jump_again:
                     self._start_jump()
@@ -163,11 +197,11 @@ class PlayerSprite(pygame.sprite.Sprite):
             else:
                 self.running = False
 
-            if(self.running and not self.falling and not self.jumping):
-                if random.randint(0,5) == 5:
-                    wave = Wave([self.rect.x+self.SCALE/2, self.rect.y+self.SCALE],
-                            random.randint(5, 10), 144,
-                                    [0, 0.08])
+            if (self.running and not self.falling and not self.jumping):
+                if random.randint(0, 5) == 5:
+                    wave = Wave([self.rect.x + self.SCALE / 2, self.rect.y + self.SCALE],
+                                random.randint(5, 10), 144,
+                                [0, 0.08])
                     Waves.get_or_create().add_wave(wave)
 
             if self.player.direction != Directions.UP:
@@ -194,8 +228,14 @@ class PlayerSprite(pygame.sprite.Sprite):
             self._jump()
         elif self.falling:
             self._fail()
+        elif not self.step_on_block():
+            self.jumping = False
+            self.falling = True
 
         self.check_collision()
+
+        if self.rect.y > self.height:
+            self.dead()
 
         self.player.direction = None
 
