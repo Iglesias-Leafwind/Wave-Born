@@ -81,34 +81,33 @@ class PlayerSprite(pygame.sprite.Sprite):
             self.rect.y += 5
             if pygame.sprite.collide_mask(b, sprite):
                 self.rect.x -= 5 * self.direction
-                if not pygame.sprite.collide_mask(b, sprite):
+                self.rect.y -= 5
+                if pygame.sprite.collide_mask(b, sprite):
                     self.rect.x += 5 * self.direction
-                    self.rect.y -= 5
                     continue
                 self.rect.x += 5 * self.direction
-                self.rect.y -= 5
-                return not self.collision_with_wall()
+                return True
             self.rect.y -= 5
 
     def collision_with_wall(self):
         blocks = World.get_or_create().get_blocks()
         sprite = PlayerSprite.get_or_create()
         for b in blocks:
-            self.rect.x += 5
+            self.rect.x += 5 * self.direction
             if pygame.sprite.collide_mask(b, sprite):
-                self.rect.x -= 5
+                self.rect.x -= 5 * self.direction
                 return True
-            self.rect.x -= 5
+            self.rect.x -= 5 * self.direction
 
     def block_above_player(self):
         blocks = World.get_or_create().get_blocks()
         sprite = PlayerSprite.get_or_create()
         for b in blocks:
-            self.rect.y -= 3
+            self.rect.y -= 5
             if pygame.sprite.collide_mask(b, sprite):
-                self.rect.y += 3
+                self.rect.y += 5
                 return True
-            self.rect.y += 3
+            self.rect.y += 5
 
     @property
     def pos(self):
@@ -196,11 +195,11 @@ class PlayerSprite(pygame.sprite.Sprite):
             if self.player.direction == Directions.LEFT:
                 move_images = self.left_move_images
                 self.running = True
-                self.direction = 1
+                self.direction = -1
             elif self.player.direction == Directions.RIGHT:
                 move_images = self.right_move_images
                 self.running = True
-                self.direction = -1
+                self.direction = 1
             elif self.player.direction == Directions.UP:
                 if self.jump_count < self.jump_limit and not self.falling and self.jump_again:
                     self._start_jump()
