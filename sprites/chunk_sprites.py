@@ -26,7 +26,7 @@ class BlockSprite(pygame.sprite.Sprite):
         self.chunk = chunk
         self.blocks = self.chunk.blocks
 
-        images = [pygame.transform.scale(BLOCK_SPRITESHEET.image_at((SCALE * block.block_type, 0, SCALE, SCALE), -1),
+        images = [pygame.transform.scale(BLOCK_SPRITESHEET.image_at((SCALE * block.block_type, 0, SCALE, SCALE)),
                                          (SCALE, SCALE), ) for block in self.blocks]
 
         rects = [image.get_rect() for image in images]
