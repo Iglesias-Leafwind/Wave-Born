@@ -212,10 +212,10 @@ class PlayerSprite(pygame.sprite.Sprite):
                 self.running = False
 
             if (self.running and not self.falling and not self.jumping):
-                if random.randint(0, 5) == 5:
+                if random.randint(0, 10) == 10:
                     wave = Wave([self.rect.x + self.SCALE / 2, self.rect.y + self.SCALE],
-                                random.randint(5, 10), 144,
-                                [0, 0.08])
+                                random.randint(3, 7), 144,
+                                [0, 0.3])
                     Waves.get_or_create().add_wave(wave)
 
             if self.player.direction != Directions.UP:

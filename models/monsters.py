@@ -121,8 +121,8 @@ class Monster:
                 random.randrange(self.start_width, self.stop_width),
                 random.randrange(self.start_height, self.stop_height),
             ]
-            if self.x >= Monster.USER_POS[0] + Monster.USER_WIDTH_OFFSET or self.x <= Monster.USER_POS[
-                0] - Monster.USER_WIDTH_OFFSET \
+            if self.x >= Monster.USER_POS[0]+16*4 + Monster.USER_WIDTH_OFFSET or self.x <= Monster.USER_POS[
+                0]-16*4 - Monster.USER_WIDTH_OFFSET \
                     or self.y <= Monster.USER_POS[1] + Monster.USER_HEIGHT_OFFSET or self.y >= Monster.USER_POS[
                 1] - Monster.USER_HEIGHT_OFFSET:
 
@@ -303,14 +303,8 @@ class GroundMonster(Monster):
         self.fsm.update(event, self)
 
     def spawn(self):
-        while True:
-            self.pos = [
-                random.randrange(self.start_width, self.stop_width),
-                self.stop_height,
-            ]
-            if self.check_inside_walls():
-                continue
-            return self.pos
+        self.pos = [super(GroundMonster, self).spawn()[0], self.stop_height]
+        return self.pos
 
     def jump(self, **kwargs):
         old_pos = self.pos

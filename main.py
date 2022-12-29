@@ -35,7 +35,7 @@ if __name__ == "__main__":
 
         all_sprites = sprite.Group()
 
-        world = World("easy", 5,blocks_x,blocks_y,SCALE)
+        world = World("easy", 2,blocks_x,blocks_y,SCALE)
         world.startWorld()
 
         # loading the images
@@ -88,15 +88,15 @@ if __name__ == "__main__":
                 all_sprites.add(chunk)
 
         while 1:
-            if(random.randint(0,100) < 50 and 5 > (len(bird_sprite.monsters) + len(spider_sprite.monsters) + len(turtle_sprite.monsters) + len(whale_sprite.monsters))):
+            if(random.randint(0,100) < 5 and 3 > (len(bird_sprite.monsters) + len(spider_sprite.monsters) + len(turtle_sprite.monsters))):
                 selectMonster = random.randint(0,100)
-                if(selectMonster <= 1):
+                if(selectMonster <= 19):
                     whale_sprite._add_monster(spawner.spawn_monster(whale))
-                elif(selectMonster <= 26):
+                elif(selectMonster <= 44):
                     bird_sprite._add_monster(spawner.spawn_monster(bird))
-                elif(selectMonster <= 51):
+                elif(selectMonster <= 69):
                     spider_sprite._add_monster(spawner.spawn_monster(spider))
-                elif(selectMonster <= 82):
+                elif(selectMonster <= 100):
                     turtle_sprite._add_monster(spawner.spawn_monster(turtle))
             camera_move = True
             movement = 0
