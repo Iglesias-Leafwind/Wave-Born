@@ -83,11 +83,22 @@ class PlayerSprite(pygame.sprite.Sprite):
                 self.rect.x -= 5 * self.direction
                 if not pygame.sprite.collide_mask(b, sprite):
                     self.rect.x += 5 * self.direction
+                    self.rect.y -= 5
                     continue
                 self.rect.x += 5 * self.direction
                 self.rect.y -= 5
-                return True
+                return not self.collision_with_wall()
             self.rect.y -= 5
+
+    def collision_with_wall(self):
+        blocks = World.get_or_create().get_blocks()
+        sprite = PlayerSprite.get_or_create()
+        for b in blocks:
+            self.rect.x += 5
+            if pygame.sprite.collide_mask(b, sprite):
+                self.rect.x -= 5
+                return True
+            self.rect.x -= 5
 
     def block_above_player(self):
         blocks = World.get_or_create().get_blocks()
@@ -141,7 +152,7 @@ class PlayerSprite(pygame.sprite.Sprite):
 
     def _jump(self):
         if not self.block_above_player():
-            self.rect.y -= 0.1
+            self.rect.y -= 1
             self.jump_count += 0.5
         else:
             self.jumping = False
@@ -208,8 +219,8 @@ class PlayerSprite(pygame.sprite.Sprite):
                 # update the position when the direction is different of UP
                 # because when the direction == UP, we will modify the y in the jump method
                 x, y = self.player.direction
-                self.rect.x += x
-                self.rect.y += y
+                if not self.collision_with_wall():
+                    self.rect.x += x
 
             self._update_image(move_images)
 
