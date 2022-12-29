@@ -65,11 +65,11 @@ class PlayerSprite(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
         PlayerSprite.__player_sprite = self
 
-    def has_collision_with(self, x, y):
-        return abs(self.rect.x - x) < 32 and abs(self.rect.y - y) < 16
+    def has_collision_with(self, rect):
+        return self.rect.colliderect(rect)
 
-    def stepped_on(self, x, y):
-        if self.has_collision_with(x, y) and self.falling and self.rect.y < y:
+    def stepped_on(self, monster_rect):
+        if self.has_collision_with(monster_rect) and self.falling and self.rect.y < monster_rect.y:
             return True
 
     @property
@@ -207,10 +207,10 @@ class PlayerSprite(pygame.sprite.Sprite):
         for enemy in self.enemies:
             enemy_sprite = enemy.get_or_create()
             for monster in enemy_sprite.monsters:
-                if not monster.dying and self.stepped_on(monster.pos[0], monster.pos[1]):
+                if not monster.dying and self.stepped_on(enemy_sprite.rects[monster.id]):
                     enemy_sprite.change_monster_state(monster)
                     monster.dead()
                     self._start_jump(stepped=True)
-                elif not monster.dying and self.has_collision_with(monster.pos[0], monster.pos[1]):
+                elif not monster.dying and self.has_collision_with(enemy_sprite.rects[monster.id]):
                     self.dead()
                     return

@@ -52,13 +52,13 @@ if __name__ == "__main__":
         birds = [spawner.spawn_monster(bird) for _ in range(5)]
         bird_sprite = BirdLikeSprite(birds, WIDTH, HEIGHT, SCALE)
 
-        spider = SpiderLike(width=WIDTH, height=HEIGHT, start_width=100, stop_width=WIDTH, stop_height=500,
+        spider = SpiderLike(width=WIDTH, height=HEIGHT, start_width=100, stop_width=WIDTH, stop_height=470,
                             attack_prob=0.05)
-        spiders = [spawner.spawn_monster(spider) for _ in range(5)]
+        spiders = [spawner.spawn_monster(spider) for _ in range(1)]
         spider_sprite = SpiderLikeSprite(spiders, WIDTH, HEIGHT, SCALE)
         SpiderLike.SPRITE = spider_sprite
 
-        turtle = TurtleLike(width=WIDTH, height=HEIGHT, start_width=100, stop_width=WIDTH, stop_height=490,
+        turtle = TurtleLike(width=WIDTH, height=HEIGHT, start_width=100, stop_width=WIDTH, stop_height=470,
                             attack_prob=0.01)
         turtles = [spawner.spawn_monster(turtle) for _ in range(3)]
         turtle_sprite = TurtleLikeSprite(turtles, WIDTH, HEIGHT, SCALE)
@@ -135,7 +135,7 @@ if __name__ == "__main__":
                 menu.mainloop(screen)
             else:
                 # create cover surface
-                mask.fill(0)
+                #mask.fill(0)
 
                 # world interaction
                 moved += movement
@@ -204,10 +204,9 @@ if __name__ == "__main__":
                 for wave in waves:
                     wave.update()
                 
-                #if player.dead or world.timeout():
-                    #menu.game_over()
-                    #menu.mainloop(screen)
+                if player.dead or world.timeout():
+                    menu.game_over()
+                    menu.mainloop(screen)
                     #sd.stop_all_sounds()
-                    #break
-            
+                    break
             pygame.display.flip()
