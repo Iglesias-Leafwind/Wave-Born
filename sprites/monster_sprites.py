@@ -78,6 +78,11 @@ class MonsterSprite(pygame.sprite.Sprite):
         if id in self.img_indexes:
             self.img_indexes.pop(id)
 
+    def _add_monster(self, monster):
+        self.monsters.append(monster)
+        id = monster.id
+        self.img_indexes[id] = 0
+
     def update(self, **kwargs):
         if self.pos_update_count >= self.pos_update_per_frames:
             for monster in self.monsters:
@@ -232,6 +237,12 @@ class BirdLikeSprite(MonsterSprite):
             Sound.pop_sound(cry_sound)
             self.cry_count.pop(bird.id)
 
+    def _add_monster(self, bird):
+        super(BirdLikeSprite,self)._add_monster(bird)
+        id = bird.id
+        self.rects[id] = (self.image, self.image.get_rect())
+        self.img_indexes[id] = 0
+
     def update(self, **kwargs):
         super(BirdLikeSprite, self).update(**kwargs)
 
@@ -353,6 +364,12 @@ class SpiderLikeSprite(GroundMonsterSprite):
             if spider.is_dead:
                 self._remove_monster(spider)
 
+    def _add_monster(self, spider):
+        super(SpiderLikeSprite,self)._add_monster(spider)
+        id = spider.id
+        self.rects[id] = (self.image, self.image.get_rect())
+        self.img_indexes[id] = 0
+
     def update_camera_movement(self, movement):
         for spider in self.monsters:
             spider.x -= movement
@@ -412,6 +429,12 @@ class TurtleLikeSprite(GroundMonsterSprite):
             Sound.pop_sound(cry_sound)
             self.sound_count.pop(turtle.id)
 
+    def _add_monster(self, turtle):
+        super(TurtleLikeSprite,self)._add_monster(turtle)
+        id = turtle.id
+        self.rects[id] = (self.image, self.image.get_rect())
+        self.img_indexes[id] = 0
+        
     def update(self, **kwargs):
         super(TurtleLikeSprite, self).update(**kwargs)
         for turtle in self.monsters:
@@ -507,6 +530,12 @@ class WhaleSprite(MonsterSprite):
             else:
                 attack_count['during_attack'] = False
 
+    def _add_monster(self, whale):
+        super(WhaleSprite,self)._add_monster(whale)
+        id = whale.id
+        self.rects[id] = (self.image, self.image.get_rect())
+        self.img_indexes[id] = 0
+        
     def update_camera_movement(self, movement):
         for whale in self.monsters:
             whale.x -= movement

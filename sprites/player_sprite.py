@@ -51,6 +51,7 @@ class PlayerSprite(pygame.sprite.Sprite):
         self.jumping = False  # is jumping
         self.falling = False  # is falling
         self.running = False  # is running
+        
         self.without_moving = 0  # number of updates without moving action
         self.playing_running_sound = True
         self.direction = 1
@@ -124,6 +125,9 @@ class PlayerSprite(pygame.sprite.Sprite):
     def dead(self):
         self.player.dead = True
 
+    def won(self):
+        self.player.won = True
+        
     @staticmethod
     def get_or_create(**kwargs):
         if PlayerSprite.__player_sprite:
@@ -244,6 +248,8 @@ class PlayerSprite(pygame.sprite.Sprite):
 
         self.check_collision()
 
+        self.check_end_collision()
+        
         if self.rect.y > self.height:
             self.dead()
 
@@ -264,3 +270,9 @@ class PlayerSprite(pygame.sprite.Sprite):
                 elif not monster.dying and self.has_collision_with(enemy_sprite.rects[monster.id][1]):
                     self.dead()
                     return
+
+    def check_end_collision(self):
+        end_sprite = World.get_or_create().end_sprite
+        if end_sprite:
+            if(self.has_collision_with(end_sprite.rect)):
+                self.won()
