@@ -88,19 +88,13 @@ if __name__ == "__main__":
                 all_sprites.add(chunk)
 
         while 1:
-            if(random.randint(0,100) < 5 and 3 > (len(bird_sprite.monsters) + len(spider_sprite.monsters) + len(turtle_sprite.monsters))):
-                selectMonster = random.randint(0,100)
-                if(selectMonster <= 19):
-                    whale_sprite._add_monster(spawner.spawn_monster(whale))
-                elif(selectMonster <= 44):
-                    bird_sprite._add_monster(spawner.spawn_monster(bird))
-                elif(selectMonster <= 69):
-                    spider_sprite._add_monster(spawner.spawn_monster(spider))
-                elif(selectMonster <= 100):
-                    turtle_sprite._add_monster(spawner.spawn_monster(turtle))
+            
+            #initial arguments
             camera_move = True
             movement = 0
             clock.tick(144)
+            
+            #process input
             for e in event.get():
                 if e.type == QUIT:
                     pygame.quit()
@@ -143,6 +137,19 @@ if __name__ == "__main__":
             if menu and menu.show:
                 menu.mainloop(screen)
             else:
+                #update game
+                
+                if(random.randint(0,100) < 5 and 3 > (len(bird_sprite.monsters) + len(spider_sprite.monsters) + len(turtle_sprite.monsters))):
+                    selectMonster = random.randint(0,100)
+                    if(selectMonster <= 19):
+                        whale_sprite._add_monster(spawner.spawn_monster(whale))
+                    elif(selectMonster <= 44):
+                        bird_sprite._add_monster(spawner.spawn_monster(bird))
+                    elif(selectMonster <= 69):
+                        spider_sprite._add_monster(spawner.spawn_monster(spider))
+                    elif(selectMonster <= 100):
+                        turtle_sprite._add_monster(spawner.spawn_monster(turtle))
+                
                 # create cover surface
                 mask.fill(0)
 
@@ -185,6 +192,27 @@ if __name__ == "__main__":
                     turtle_sprite.update_camera_movement(movement)
                     whale_sprite.update_camera_movement(movement)
 
+                
+                for wave in waves:
+                    if (wave.checkLimits(WIDTH, HEIGHT)):
+                        waves.remove(wave)
+
+                for wave in waves:
+                    wave.update()
+                    
+                if player.won:
+                    #instead of game over -> game win
+                    menu.game_over()
+                    menu.mainloop(screen)
+                    break
+                
+                if player.dead or world.timeout():
+                    menu.game_over()
+                    menu.mainloop(screen)
+                    #sd.stop_all_sounds()
+                    break
+                
+                #render
                 all_sprites.update()
                 all_sprites.draw(screen)
                 bird_sprite.update()
@@ -206,22 +234,4 @@ if __name__ == "__main__":
                 screen.blit(mask, (0, 0))
                 screen.blit(world.get_time_passed_surface(), (0,0))
                 
-                for wave in waves:
-                    if (wave.checkLimits(WIDTH, HEIGHT)):
-                        waves.remove(wave)
-
-                for wave in waves:
-                    wave.update()
-                    
-                if player.won:
-                    #instead of game over -> game win
-                    menu.game_over()
-                    menu.mainloop(screen)
-                    break
-                
-                if player.dead or world.timeout():
-                    menu.game_over()
-                    menu.mainloop(screen)
-                    #sd.stop_all_sounds()
-                    break
             pygame.display.flip()
