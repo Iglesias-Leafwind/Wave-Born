@@ -36,7 +36,7 @@ if __name__ == "__main__":
 
         all_sprites = sprite.Group()
 
-        world = World("easy", 1)
+        world = World("easy", 1,blocks_x,blocks_y,SCALE)
         world.startWorld()
 
         # loading the images
@@ -84,11 +84,9 @@ if __name__ == "__main__":
         opened_menu = False
         hardmode = False
         moved = 0
-        chunk_sprites = {}
-        for idx,chunk in enumerate(world.loaded_chunks):
+        for chunk in world.loaded_chunks:
             if chunk:
-                chunk_sprites[idx-2] = BlockSprite(chunk, blocks_x, blocks_y, SCALE)
-                all_sprites.add(chunk_sprites[idx-2])
+                all_sprites.add(chunk)
 
         while 1:
             camera_move = True
@@ -141,36 +139,36 @@ if __name__ == "__main__":
 
                 # world interaction
                 moved += movement
-                if int(moved / (SCALE * 16)) >= 1:
-                    _, added = world.loadNextChunk()
+                if int(moved / (SCALE * 16)) == 1:
+                    removed, added = world.loadNextChunk()
+                    if removed:
+                        all_sprites.remove(removed)
                     if added:
-                        if world.current_chunk+2 not in chunk_sprites:
-                            chunk_sprites[world.current_chunk+2] = BlockSprite(added, blocks_x, blocks_y, SCALE)
-                        all_sprites.add(chunk_sprites[world.current_chunk+2])
+                        all_sprites.add(added)
                         try:
-                            all_sprites.remove(chunk_sprites[world.current_chunk-2])
-                            all_sprites.add(added.end_sprite)
+                            all_sprites.add(added.chunk.end_sprite)        
                         except:
                             pass
                     moved = 0
-                elif (int(moved / (SCALE * 16)) <= -1):
-                    _, added = world.loadPrevChunk()
+                elif (int(moved / (SCALE * 16)) == -1):
+                    removed, added = world.loadPrevChunk()
+                    if removed:
+                        all_sprites.remove(removed)
                     if added:
-                        all_sprites.add(chunk_sprites[world.current_chunk-2])
+                        all_sprites.add(added)
                         try:
-                            all_sprites.remove(chunk_sprites[world.current_chunk+2])
-                            all_sprites.remove(added.end_sprite)
+                            all_sprites.remove(added.chunk.end_sprite)
                         except:
                             pass
+                    
                     moved = 0
                 if (camera_move):
                     # world movement
                     world.moveWorld(movement)
-                    for i in range(world.current_chunk-2,world.current_chunk+3):
-                        try:
-                            chunk_sprites[i].move((-movement, 0))
-                        except:
-                            pass
+                    world.moveCamera(movement)
+                    
+                    for wave in waves:
+                        wave.x -= movement
                     # counter entity movement with world
                     player_sprite.update_camera_movement(movement)
                     bird_sprite.update_camera_movement(movement)
@@ -206,10 +204,10 @@ if __name__ == "__main__":
                 for wave in waves:
                     wave.update()
                 
-                if player.dead or world.timeout():
-                    menu.game_over()
-                    menu.mainloop(screen)
+                #if player.dead or world.timeout():
+                    #menu.game_over()
+                    #menu.mainloop(screen)
                     #sd.stop_all_sounds()
-                    break
+                    #break
             
             pygame.display.flip()
