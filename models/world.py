@@ -28,8 +28,7 @@ class World:
         World._singleton = self
 
     def loadFiles(self):
-        self.start = Chunk.load_chunk(0, "./chunks/normal/plane")
-        self.end = Chunk.load_chunk(0, "./chunks/normal/plane", end=True)
+        self.start_end_chunk = Chunk.load_chunk(0, "./chunks/normal/plane")
 
         file_path = "./chunks/normal"
         normal_chunks = [Chunk.load_chunk(0, join(file_path, f)) for f in listdir(file_path) if
@@ -52,11 +51,11 @@ class World:
         self.world_chunks = []
         self.end_sprite = None
         self.num_monsters = difficulty*2 + 3
-        print(self.difficulty, self.num_monsters)
+
         chunks = self.file_chunks
         normal_qty = [idx for idx in range(len(chunks[0]))]
         tunnel_qty = [idx for idx in range(len(chunks[1]))]
-        self.world_chunks.append(self.start)
+        self.world_chunks.append(copy.deepcopy(self.start_end_chunk))
         for pos in range(1, self.num_chunks - 1):
             if (self.world_chunks[pos - 1].tunnel and random.randint(0, 10)):
                 random.shuffle(tunnel_qty)
@@ -71,7 +70,9 @@ class World:
                 continue
             print("Not possible to generate chunks given all possibilities")
             return None
-        self.world_chunks.append(self.end)
+        end_chunk = copy.deepcopy(self.start_end_chunk)
+        end_chunk.end_chunk()
+        self.world_chunks.append(end_chunk)
         
     def startWorld(self):
         self.start_timer = pygame.time.get_ticks()

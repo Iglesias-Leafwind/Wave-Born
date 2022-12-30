@@ -10,7 +10,6 @@ from menu.mainmenu import MainMenu
 from sprites.background_sprite import BackgroundSprite
 from sprites.monster_sprites import SpiderLikeSprite, BirdLikeSprite, TurtleLikeSprite, WhaleSprite
 from sprites.player_sprite import PlayerSprite
-from models.sound import Sound as sd
 
 if __name__ == "__main__":
     WIDTH = 1024
@@ -38,7 +37,7 @@ if __name__ == "__main__":
 
         all_sprites = sprite.Group()
 
-        world.generateWorld(menu.difficulty, 2)
+        world.generateWorld(menu.difficulty, menu.difficulty+1)
         world.startWorld()
 
         # loading the images
@@ -56,8 +55,8 @@ if __name__ == "__main__":
                             attack_prob=0.05)
         turtle = TurtleLike(width=WIDTH, height=HEIGHT, start_width=100, stop_width=WIDTH, stop_height=460,
                             attack_prob=0.01)
-        whale = Whale(width=WIDTH, height=HEIGHT, stop_width=WIDTH, stop_height=HEIGHT, attack_prob=0.05)
-        
+        whale = Whale(width=WIDTH, height=HEIGHT, stop_width=WIDTH, stop_height=HEIGHT, attack_prob=0.1)
+
         #initialize sprite objects
         bird_sprite = BirdLikeSprite([], WIDTH, HEIGHT, SCALE)
         all_sprites.add(bird_sprite)
@@ -81,7 +80,6 @@ if __name__ == "__main__":
 
         mask = pygame.Surface((WIDTH, HEIGHT))
         mask.set_colorkey((0, 0, 255))
-        # mask.fill(0)
 
         lastKey = None
         waves = Waves()
@@ -92,7 +90,7 @@ if __name__ == "__main__":
         for chunk in world.loaded_chunks:
             if chunk:
                 all_sprites.add(chunk)
-
+        
         while 1:
             #initial arguments
             camera_move = True
@@ -200,19 +198,17 @@ if __name__ == "__main__":
                 if player.won:
                     #instead of game over -> game win
                     menu.game_over(True)
-                    sd.stop_all_sounds()
                     menu.mainloop(screen)
                     break
                 
                 if player.dead or world.timeout():
                     menu.game_over(False)
-                    sd.stop_all_sounds()
                     menu.mainloop(screen)
                     break
                 
                 #render
                 # create cover surface
-                #mask.fill(0)
+                mask.fill(0)
 
                 all_sprites.update()
                 all_sprites.draw(screen)

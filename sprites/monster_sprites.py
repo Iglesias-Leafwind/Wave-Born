@@ -428,7 +428,7 @@ class TurtleLikeSprite(GroundMonsterSprite):
             cry_sound.stop()
             Sound.pop_sound(cry_sound)
             self.sound_count.pop(turtle.id)
-
+            
     def _add_monster(self, turtle):
         super(TurtleLikeSprite,self)._add_monster(turtle)
         id = turtle.id
@@ -474,11 +474,12 @@ class TurtleLikeSprite(GroundMonsterSprite):
                                                                 [0, turtle_cry['wait'] / 5]))
                             turtle_cry['finished'] = 0
 
-            if turtle.dying or turtle.attacking:
-                self.sound_count[turtle.id]['step'].stop()
-            else:
-                self.sound_count[turtle.id]['step'].play(loops=-1)
+            #if turtle.dying or turtle.attacking:
+            #    self.sound_count[turtle.id]['step'].stop()
+            #else:
+            #    self.sound_count[turtle.id]['step'].play(loops=-1)
 
+        
     def update_camera_movement(self, movement):
         for turtle in self.monsters:
             turtle.x -= movement
@@ -525,13 +526,11 @@ class WhaleSprite(MonsterSprite):
                 self._remove_monster(whale)
                 continue
 
-            if whale.id not in self.attack_count:
-                self.attack_count[whale.id] = {'sound': Sound(self.cry_sound_path), 'during_attack': False}
             attack_count = self.attack_count[whale.id]
             if whale.attacking and not attack_count['during_attack']:
                 attack_count['sound'].play()
                 attack_count['during_attack'] = True
-            else:
+            elif not whale.attacking:
                 attack_count['during_attack'] = False
 
 
@@ -540,6 +539,7 @@ class WhaleSprite(MonsterSprite):
         id = whale.id
         self.rects[id] = (self.image, self.image.get_rect())
         self.img_indexes[id] = 0
+        self.attack_count[id] = {'sound': Sound(self.cry_sound_path), 'during_attack': False}
         
     def update_camera_movement(self, movement):
         for whale in self.monsters:
