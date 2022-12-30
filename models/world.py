@@ -18,14 +18,13 @@ def getPossibleChunks(chunk_list, prev_chunk, check_order):
 class World:
     _singleton = None
 
-    def __init__(self, difficulty, time_limit,blocks_x,blocks_y,SCALE):
+    def __init__(self, blocks_x, blocks_y, SCALE):
         self.blocks_x = blocks_x
         self.blocks_y = blocks_y
         self.SCALE = SCALE
         
-        self.loaded_chunks = self.loadFiles()
+        self.file_chunks = self.loadFiles()
         
-        self.generateWorld(self.loaded_chunks,difficulty, time_limit)
         World._singleton = self
 
     def loadFiles(self):
@@ -41,7 +40,7 @@ class World:
                          isfile(join(file_path, f))]
         return (normal_chunks, tunnel_chunks)
 
-    def generateWorld(self, chunks, difficulty, time_limit):
+    def generateWorld(self, difficulty, time_limit):
         self.difficulty = difficulty
         self.time_limit = time_limit*2  # in minutes
         self.num_chunks = int((time_limit * 60) / 8)
@@ -52,7 +51,9 @@ class World:
         self.loaded_chunks = [None, None, None, None, None]
         self.world_chunks = []
         self.end_sprite = None
-        
+        self.num_monsters = difficulty*2 + 3
+        print(self.difficulty, self.num_monsters)
+        chunks = self.file_chunks
         normal_qty = [idx for idx in range(len(chunks[0]))]
         tunnel_qty = [idx for idx in range(len(chunks[1]))]
         self.world_chunks.append(self.start)
