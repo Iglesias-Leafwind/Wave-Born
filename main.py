@@ -6,7 +6,7 @@ from models.monsters import Monster, BirdLike, Spawner, SpiderLike, TurtleLike, 
 from models.player import Player
 from models.wave import Waves
 from models.world import World
-from menu.menu import Menu
+from menu.mainmenu import MainMenu
 from sprites.background_sprite import BackgroundSprite
 from sprites.monster_sprites import SpiderLikeSprite, BirdLikeSprite, TurtleLikeSprite, WhaleSprite
 from sprites.player_sprite import PlayerSprite
@@ -32,6 +32,9 @@ if __name__ == "__main__":
         # init screen
         screen = pygame.display.set_mode((WIDTH, HEIGHT))
         screen.fill((0, 0, 255))
+
+        menu = MainMenu()
+        menu.set_show()
 
         all_sprites = sprite.Group()
 
@@ -79,7 +82,6 @@ if __name__ == "__main__":
         lastKey = None
         waves = Waves()
 
-        menu = Menu()
         opened_menu = False
         hardmode = False
         moved = 0
