@@ -209,7 +209,7 @@ class BirdLikeSprite(MonsterSprite):
         self.feather_sprite = FeatherSprite.get_or_create(WIDTH=WIDTH, HEIGHT=HEIGHT, SCALE=SCALE)
 
         self._init_images()
-        self.image = self.left_move_images[0]
+        self.image = pygame.Surface(self.left_move_images[0].get_size())
         self.rect = self.image.get_rect()
         self.rects = {m.id: (self.image, self.image.get_rect()) for m in self.monsters}
         self.mask = pygame.mask.from_surface(self.image)
@@ -325,7 +325,7 @@ class SpiderLikeSprite(GroundMonsterSprite):
         self.width = WIDTH
         self.height = HEIGHT
         self._init_images()
-        self.image = self.left_move_images[0]
+        self.image = pygame.Surface(self.left_move_images[0].get_size())
         self.rect = self.image.get_rect()
         
         self.rects = {m.id: (self.image, self.image.get_rect()) for m in self.monsters}
@@ -388,7 +388,7 @@ class TurtleLikeSprite(GroundMonsterSprite):
         self.cry_sound_path = 'sources/sounds/turtle.mp3'
         self.step_sound_path = 'sources/sounds/step.mp3'
         self._init_images()
-        self.image = self.left_move_images[0]
+        self.image = pygame.Surface(self.left_move_images[0].get_size())
         self.rect = self.image.get_rect()
         self.rects = {m.id: (self.image, self.image.get_rect()) for m in self.monsters}
         self.mask = pygame.mask.from_surface(self.image)
@@ -493,7 +493,7 @@ class WhaleSprite(MonsterSprite):
         self.cry_sound_path = "sources/sounds/whale.mp3"
         self.SCALE = SCALE
         self._init_images()
-        self.image = self.left_move_images[0]
+        self.image = pygame.Surface(self.left_move_images[0].get_size())
         self.rect = self.image.get_rect()
         self.rects = {m.id: (self.image, self.image.get_rect()) for m in self.monsters}
         self.mask = pygame.mask.from_surface(self.image)
