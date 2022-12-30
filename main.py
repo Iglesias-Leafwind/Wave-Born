@@ -32,7 +32,7 @@ if __name__ == "__main__":
     world = World(blocks_x,blocks_y,SCALE)    
     pygame.font.init()
     while menu is None or not menu.exit:
-        
+
         # init screen
         screen.fill((0, 0, 255))
 
@@ -56,7 +56,7 @@ if __name__ == "__main__":
                             attack_prob=0.05)
         turtle = TurtleLike(width=WIDTH, height=HEIGHT, start_width=100, stop_width=WIDTH, stop_height=460,
                             attack_prob=0.01)
-        whale = Whale(width=WIDTH, height=HEIGHT, stop_width=WIDTH, stop_height=HEIGHT, attack_prob=1)
+        whale = Whale(width=WIDTH, height=HEIGHT, stop_width=WIDTH, stop_height=HEIGHT, attack_prob=0.05)
         
         #initialize sprite objects
         bird_sprite = BirdLikeSprite([], WIDTH, HEIGHT, SCALE)
@@ -106,11 +106,8 @@ if __name__ == "__main__":
                     break
 
                 elif e.type == KEYDOWN or e.type == KEYUP:
-                    if e.key == K_ESCAPE and not opened_menu:
+                    if e.key == K_ESCAPE:
                         menu.set_show()
-                        opened_menu = True
-                    else:
-                        opened_menu = False
 
                     lastKey = pygame.key.get_pressed()
                     # player.command(e.key)

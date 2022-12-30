@@ -444,6 +444,7 @@ class Whale(Monster):
             Whale.SPRITE.change_monster_state(self)
         elif self.fsm.current == Move and self.want_attack():
             event = Event.ATTACK
+            self.attack_info['time'] = time.time()
 
         self.fsm.update(event, self)
 
