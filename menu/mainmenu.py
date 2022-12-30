@@ -61,10 +61,11 @@ class MainMenu(pygame_menu.Menu):
         self.volume_ = int(v)
         music.set_volume(self.volume)
 
-    def game_over(self):
+    def game_over(self, win):
         self._game_over = True
         self.during_game = False
         self.play.show()
+        self.set_title(f"Game Over, You {'Won' if win else 'Died'}")
         self.set_show()
 
     def is_game_over(self):

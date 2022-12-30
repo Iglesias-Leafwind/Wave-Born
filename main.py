@@ -23,18 +23,17 @@ if __name__ == "__main__":
     music.load("sources/sounds/breeze_bay.mp3")
     music.play(loops=-1)
 
-    # init pygame
-    menu = None
+    pygame.init()
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+
+    menu = MainMenu()
+    menu.set_show()
+
     pygame.font.init()
     while menu is None or not menu.exit:
         
-        pygame.init()
         # init screen
-        screen = pygame.display.set_mode((WIDTH, HEIGHT))
         screen.fill((0, 0, 255))
-
-        menu = MainMenu()
-        menu.set_show()
 
         all_sprites = sprite.Group()
 
@@ -204,14 +203,13 @@ if __name__ == "__main__":
                     
                 if player.won:
                     #instead of game over -> game win
-                    menu.game_over()
+                    menu.game_over(True)
                     menu.mainloop(screen)
                     break
                 
                 if player.dead or world.timeout():
-                    menu.game_over()
+                    menu.game_over(False)
                     menu.mainloop(screen)
-                    #sd.stop_all_sounds()
                     break
                 
                 #render
