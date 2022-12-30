@@ -16,8 +16,9 @@ class Wave:
         self.radius += self.velocity
 
     def draw(self, mask):
-        pygame.draw.circle(mask, (0, 0, 255), (self.x, self.y), self.radius, self.thicc)
-
+        #pygame.draw.circle(mask, (0, 0, 255), (self.x, self.y), self.radius, self.thicc)
+        pygame.draw.rect(mask,(0,0,255), pygame.Rect(self.x-self.radius/2,self.y-self.radius/2,self.radius,self.radius), self.thicc, self.radius)
+        
     def checkLimits(self, WIDTH, HEIGHT):
         limits = [(0, 0), (WIDTH, 0), (0, HEIGHT), (WIDTH, HEIGHT)]
         return all((abs(limit[0] - self.x) + abs(limit[1] - self.y)) < self.radius for limit in limits)

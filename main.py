@@ -88,7 +88,6 @@ if __name__ == "__main__":
                 all_sprites.add(chunk)
 
         while 1:
-            
             #initial arguments
             camera_move = True
             movement = 0
@@ -139,9 +138,9 @@ if __name__ == "__main__":
             else:
                 #update game
                 
-                if(random.randint(0,100) < 5 and 3 > (len(bird_sprite.monsters) + len(spider_sprite.monsters) + len(turtle_sprite.monsters))):
+                if(random.randint(0,100) < 5 and 5 > (len(bird_sprite.monsters) + len(spider_sprite.monsters) + len(turtle_sprite.monsters))):
                     selectMonster = random.randint(0,100)
-                    if(selectMonster <= 19):
+                    if(selectMonster <= 19 and len(whale_sprite.monsters) < 1):
                         whale_sprite._add_monster(spawner.spawn_monster(whale))
                     elif(selectMonster <= 44):
                         bird_sprite._add_monster(spawner.spawn_monster(bird))
@@ -150,9 +149,6 @@ if __name__ == "__main__":
                     elif(selectMonster <= 100):
                         turtle_sprite._add_monster(spawner.spawn_monster(turtle))
                 
-                # create cover surface
-                mask.fill(0)
-
                 # world interaction
                 moved += movement
                 if int(moved / (SCALE * 16)) == 1:
@@ -192,13 +188,11 @@ if __name__ == "__main__":
                     turtle_sprite.update_camera_movement(movement)
                     whale_sprite.update_camera_movement(movement)
 
-                
                 for wave in waves:
                     if (wave.checkLimits(WIDTH, HEIGHT)):
                         waves.remove(wave)
-
-                for wave in waves:
-                    wave.update()
+                    else:
+                        wave.update()
                     
                 if player.won:
                     #instead of game over -> game win
@@ -213,6 +207,9 @@ if __name__ == "__main__":
                     break
                 
                 #render
+                # create cover surface
+                mask.fill(0)
+
                 all_sprites.update()
                 all_sprites.draw(screen)
                 bird_sprite.update()
