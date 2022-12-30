@@ -28,7 +28,7 @@ if __name__ == "__main__":
 
     menu = MainMenu()
     menu.set_show()
-
+    world = World(blocks_x,blocks_y,SCALE)    
     pygame.font.init()
     while menu is None or not menu.exit:
         
@@ -37,7 +37,7 @@ if __name__ == "__main__":
 
         all_sprites = sprite.Group()
 
-        world = World("easy", 2,blocks_x,blocks_y,SCALE)
+        world.generateWorld(menu.difficulty, 2)
         world.startWorld()
 
         # loading the images
@@ -59,18 +59,14 @@ if __name__ == "__main__":
         
         #initialize sprite objects
         bird_sprite = BirdLikeSprite([], WIDTH, HEIGHT, SCALE)
-        all_sprites.add(bird_sprite)
 
         spider_sprite = SpiderLikeSprite([], WIDTH, HEIGHT, SCALE)
-        all_sprites.add(spider_sprite)
         SpiderLike.SPRITE = spider_sprite
 
         turtle_sprite = TurtleLikeSprite([], WIDTH, HEIGHT, SCALE)
-        all_sprites.add(turtle_sprite)
         TurtleLike.SPRITE = turtle_sprite
 
         whale_sprite = WhaleSprite([], SCALE)
-        all_sprites.add(whale_sprite)
         Whale.SPRITE = whale_sprite
 
         all_sprites.add(sprite_object)
@@ -143,7 +139,7 @@ if __name__ == "__main__":
             else:
                 #update game
                 
-                if(random.randint(0,100) < 5 and 5 > (len(bird_sprite.monsters) + len(spider_sprite.monsters) + len(turtle_sprite.monsters))):
+                if(random.randint(0,100) < 5 and world.num_monsters > (len(bird_sprite.monsters) + len(spider_sprite.monsters) + len(turtle_sprite.monsters))):
                     selectMonster = random.randint(0,100)
                     if(selectMonster <= 19 and len(whale_sprite.monsters) < 1):
                         whale_sprite._add_monster(spawner.spawn_monster(whale))
@@ -212,13 +208,17 @@ if __name__ == "__main__":
                 
                 #render
                 # create cover surface
-                #mask.fill(0)
+                mask.fill(0)
 
                 all_sprites.update()
                 all_sprites.draw(screen)
+                bird_sprite.update()
                 bird_sprite.draw(screen)
+                spider_sprite.update()
                 spider_sprite.draw(screen)
+                turtle_sprite.update()
                 turtle_sprite.draw(screen)
+                whale_sprite.update()
                 whale_sprite.draw(screen)
 
                 for wave in waves:
