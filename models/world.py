@@ -52,7 +52,7 @@ class World:
         self.world_chunks = []
         self.end_sprite = None
         self.num_monsters = difficulty*2 + 3
-        print(self.difficulty, self.num_monsters)
+
         chunks = self.file_chunks
         normal_qty = [idx for idx in range(len(chunks[0]))]
         tunnel_qty = [idx for idx in range(len(chunks[1]))]

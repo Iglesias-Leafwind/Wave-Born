@@ -10,7 +10,6 @@ from menu.mainmenu import MainMenu
 from sprites.background_sprite import BackgroundSprite
 from sprites.monster_sprites import SpiderLikeSprite, BirdLikeSprite, TurtleLikeSprite, WhaleSprite
 from sprites.player_sprite import PlayerSprite
-from models.sound import Sound as sd
 
 if __name__ == "__main__":
     WIDTH = 1024
@@ -199,13 +198,11 @@ if __name__ == "__main__":
                 if player.won:
                     #instead of game over -> game win
                     menu.game_over(True)
-                    sd.stop_all_sounds()
                     menu.mainloop(screen)
                     break
                 
                 if player.dead or world.timeout():
                     menu.game_over(False)
-                    sd.stop_all_sounds()
                     menu.mainloop(screen)
                     break
                 
@@ -215,13 +212,9 @@ if __name__ == "__main__":
 
                 all_sprites.update()
                 all_sprites.draw(screen)
-                bird_sprite.update()
                 bird_sprite.draw(screen)
-                spider_sprite.update()
                 spider_sprite.draw(screen)
-                turtle_sprite.update()
                 turtle_sprite.draw(screen)
-                whale_sprite.update()
                 whale_sprite.draw(screen)
 
                 for wave in waves:
