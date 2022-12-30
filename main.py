@@ -59,14 +59,18 @@ if __name__ == "__main__":
         
         #initialize sprite objects
         bird_sprite = BirdLikeSprite([], WIDTH, HEIGHT, SCALE)
+        all_sprites.add(bird_sprite)
 
         spider_sprite = SpiderLikeSprite([], WIDTH, HEIGHT, SCALE)
+        all_sprites.add(spider_sprite)
         SpiderLike.SPRITE = spider_sprite
 
         turtle_sprite = TurtleLikeSprite([], WIDTH, HEIGHT, SCALE)
+        all_sprites.add(turtle_sprite)
         TurtleLike.SPRITE = turtle_sprite
 
         whale_sprite = WhaleSprite([], SCALE)
+        all_sprites.add(whale_sprite)
         Whale.SPRITE = whale_sprite
 
         all_sprites.add(sprite_object)
@@ -208,7 +212,7 @@ if __name__ == "__main__":
                 
                 #render
                 # create cover surface
-                mask.fill(0)
+                #mask.fill(0)
 
                 all_sprites.update()
                 all_sprites.draw(screen)
