@@ -55,7 +55,7 @@ if __name__ == "__main__":
                             attack_prob=0.05)
         turtle = TurtleLike(width=WIDTH, height=HEIGHT, start_width=100, stop_width=WIDTH, stop_height=460,
                             attack_prob=0.01)
-        whale = Whale(width=WIDTH, height=HEIGHT, stop_width=WIDTH, stop_height=HEIGHT, attack_prob=0.1)
+        whale = Whale(width=WIDTH, height=HEIGHT, stop_width=WIDTH, stop_height=HEIGHT, attack_prob=1)
         
         #initialize sprite objects
         bird_sprite = BirdLikeSprite([], WIDTH, HEIGHT, SCALE)
