@@ -521,6 +521,10 @@ class WhaleSprite(MonsterSprite):
         super(WhaleSprite, self).update(**kwargs)
 
         for whale in self.monsters:
+            if whale.is_dead:
+                self._remove_monster(whale)
+                continue
+
             if whale.id not in self.attack_count:
                 self.attack_count[whale.id] = {'sound': Sound(self.cry_sound_path), 'during_attack': False}
             attack_count = self.attack_count[whale.id]
@@ -529,6 +533,7 @@ class WhaleSprite(MonsterSprite):
                 attack_count['during_attack'] = True
             else:
                 attack_count['during_attack'] = False
+
 
     def _add_monster(self, whale):
         super(WhaleSprite,self)._add_monster(whale)

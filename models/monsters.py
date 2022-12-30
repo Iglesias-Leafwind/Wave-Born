@@ -111,14 +111,14 @@ class Monster:
     def spawn(self):
         if not Monster.USER_POS:
             self.pos = [
-                random.randrange(self.stop_width-16*15, self.stop_width),
+                random.randrange(self.stop_width - 16 * 15, self.stop_width),
                 random.randrange(self.start_height, self.stop_height),
             ]
             return self.pos
 
         while True:
             self.pos = [
-                random.randrange(self.stop_width-16*8, self.stop_width),
+                random.randrange(self.stop_width - 16 * 8, self.stop_width),
                 random.randrange(self.start_height, self.stop_height),
             ]
             if self.x >= Monster.USER_POS[0] + Monster.USER_WIDTH_OFFSET or self.x <= Monster.USER_POS[
@@ -141,7 +141,6 @@ class Monster:
                     self.direction *= -1
                 return True
             self.sprite.rect.x -= self.offset * self.direction
-
 
     def check_inside_walls(self):
         blocks = World.get_or_create().get_blocks()
@@ -305,11 +304,11 @@ class GroundMonster(Monster):
         offset = 0
         while True:
             if self.check_inside_walls():
-                self.pos = [self.pos[0], self.stop_height+offset]
+                self.pos = [self.pos[0], self.stop_height + offset]
                 offset -= 16
                 continue
             return self.pos
-        
+
     def jump(self, **kwargs):
         old_pos = self.pos
         if self.jump_count < self.jump_limit:
@@ -420,6 +419,9 @@ class Whale(Monster):
                             'wave': None,
                             'wait': random.randint(1, self.attack_interval)}
 
+    def out_of_world(self):
+        return self.x < -100 or self.x > self.width or self.y > self.height or self.y < 0
+
     def attack(self):
         if not self.attacking:
             whale_attack = self.attack_info
@@ -436,6 +438,7 @@ class Whale(Monster):
         event = None
         if self.out_of_world():
             event = Event.DEAD
+            print("?")
         elif self.fsm.current == Attack and time.time() - self.attack_info['time'] >= self.attack_interval:
             event = Event.MOVE
             self.attacking = False

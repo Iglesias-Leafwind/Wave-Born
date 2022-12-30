@@ -37,7 +37,6 @@ class MainMenu(pygame_menu.Menu):
     def start_game(self):
         self._game_over = False
         self.during_game = True
-        self.play.hide()
         self.show = False
         self.disable()
 
@@ -64,7 +63,6 @@ class MainMenu(pygame_menu.Menu):
     def game_over(self, win):
         self._game_over = True
         self.during_game = False
-        self.play.show()
         self.set_title(f"Game Over, You {'Won' if win else 'Died'}")
         self.set_show()
 
