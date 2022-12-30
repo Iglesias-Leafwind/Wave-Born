@@ -14,7 +14,7 @@ from sprites.utils import load_images, invert_images
 
 
 class MonsterSprite(pygame.sprite.Sprite):
-    _single_ton = None
+    _singleton = None
 
     def __init__(self, image_update_per_frames=0, pos_update_per_frames=0):
         Sprite.__init__(self)
@@ -40,8 +40,8 @@ class MonsterSprite(pygame.sprite.Sprite):
 
     @classmethod
     def get_or_create(cls, **kwargs):
-        if cls._single_ton:
-            return cls._single_ton
+        if cls._singleton:
+            return cls._singleton
         return cls(**kwargs)
 
     def _next_image(self, monster):
@@ -213,7 +213,7 @@ class BirdLikeSprite(MonsterSprite):
         self.rect = self.image.get_rect()
         self.rects = {m.id: (self.image, self.image.get_rect()) for m in self.monsters}
         self.mask = pygame.mask.from_surface(self.image)
-        BirdLikeSprite._single_ton = self
+        BirdLikeSprite._singleton = self
 
     def _init_images(self):
         BIRD_SPRITESHEET = SpriteSheet("sources/imgs/bird.png")
@@ -330,7 +330,7 @@ class SpiderLikeSprite(GroundMonsterSprite):
         
         self.rects = {m.id: (self.image, self.image.get_rect()) for m in self.monsters}
         self.mask = pygame.mask.from_surface(self.image)
-        SpiderLikeSprite._single_ton = self
+        SpiderLikeSprite._singleton = self
 
     def _init_images(self):
         SPIDER_SPRITESHEET = SpriteSheet("sources/imgs/spider.png")
@@ -392,7 +392,7 @@ class TurtleLikeSprite(GroundMonsterSprite):
         self.rect = self.image.get_rect()
         self.rects = {m.id: (self.image, self.image.get_rect()) for m in self.monsters}
         self.mask = pygame.mask.from_surface(self.image)
-        TurtleLikeSprite._single_ton = self
+        TurtleLikeSprite._singleton = self
 
     def _init_images(self):
         TURTLE_SPRITESHEET = SpriteSheet("sources/imgs/tortoise.png")
@@ -498,7 +498,7 @@ class WhaleSprite(MonsterSprite):
         self.rect = self.image.get_rect()
         self.rects = {m.id: (self.image, self.image.get_rect()) for m in self.monsters}
         self.mask = pygame.mask.from_surface(self.image)
-        WhaleSprite._single_ton = self
+        WhaleSprite._singleton = self
 
     def _init_images(self):
         WHALE_SPRITESHEET = SpriteSheet("sources/imgs/whale.png")

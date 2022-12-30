@@ -360,8 +360,6 @@ class GroundMonster(Monster):
 
 
 class SpiderLike(GroundMonster):
-    SPRITE = None
-
     def __init__(self, width, height, start_width=0, stop_width=0, start_height=0,
                  stop_height=0,
                  jump_limit=7,
@@ -379,10 +377,9 @@ class SpiderLike(GroundMonster):
                           self.stop_height, self.jump_limit,
                           self.jump_dist_x, self.jump_dist_y, self.attack_prob)
 
-
-class TurtleLike(GroundMonster):
     SPRITE = None
 
+class TurtleLike(GroundMonster):
     def __init__(self, width, height, start_width=0, stop_width=0, start_height=0,
                  stop_height=0,
                  jump_limit=3,
@@ -397,11 +394,10 @@ class TurtleLike(GroundMonster):
         return TurtleLike(self.width, self.height, self.start_width, self.stop_width, self.start_height,
                           self.stop_height, self.jump_limit,
                           self.jump_dist_x, self.jump_dist_y, self.attack_prob, self.cry_prob)
+    SPRITE = None
 
 
 class Whale(Monster):
-    SPRITE = None
-
     def __init__(self, width, height, start_width=0, stop_width=0, start_height=0,
                  stop_height=0,
                  attack_interval=5,
@@ -466,6 +462,7 @@ class Whale(Monster):
                      self.jump_dist_x,
                      self.jump_dist_y, self.attack_prob)
 
+    SPRITE = None
 
 class Spawner:
     def spawn_monster(self, prototype) -> Monster:
