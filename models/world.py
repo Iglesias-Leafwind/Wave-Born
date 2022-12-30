@@ -19,22 +19,13 @@ class World:
     _singleton = None
 
     def __init__(self, difficulty, time_limit,blocks_x,blocks_y,SCALE):
-        self.difficulty = difficulty
-        self.time_limit = time_limit*2  # in minutes
-        self.num_chunks = int((time_limit * 60) / 8)
-        self.start_timer = pygame.time.get_ticks()
-        self.font = pygame.font.SysFont('Comic Sans MS', 32)
-
         self.blocks_x = blocks_x
         self.blocks_y = blocks_y
         self.SCALE = SCALE
         
-        self.current_chunk = 0
-        self.moved = 0
-        self.loaded_chunks = [None, None, None, None, None]
-        self.world_chunks = []
-
-        self.generateWorld(self.loadFiles())
+        self.loaded_chunks = self.loadFiles()
+        
+        self.generateWorld(self.loaded_chunks,difficulty, time_limit)
         World._singleton = self
 
     def loadFiles(self):
@@ -50,7 +41,18 @@ class World:
                          isfile(join(file_path, f))]
         return (normal_chunks, tunnel_chunks)
 
-    def generateWorld(self, chunks):
+    def generateWorld(self, chunks, difficulty, time_limit):
+        self.difficulty = difficulty
+        self.time_limit = time_limit*2  # in minutes
+        self.num_chunks = int((time_limit * 60) / 8)
+        self.start_timer = pygame.time.get_ticks()
+        self.font = pygame.font.SysFont('Comic Sans MS', 32)
+        self.current_chunk = 0
+        self.moved = 0
+        self.loaded_chunks = [None, None, None, None, None]
+        self.world_chunks = []
+        self.end_sprite = None
+        
         normal_qty = [idx for idx in range(len(chunks[0]))]
         tunnel_qty = [idx for idx in range(len(chunks[1]))]
         self.world_chunks.append(self.start)
@@ -104,6 +106,7 @@ class World:
             if new_chunk_pos == (len(self.world_chunks) - 1):
                 self.world_chunks[new_chunk_pos].end_sprite.rect.x = 128 + self.world_chunks[new_chunk_pos].x
                 self.world_chunks[new_chunk_pos].end_sprite.rect.y = 448 - 180
+                self.end_sprite = self.world_chunks[new_chunk_pos].end_sprite
             return removed, added
         else:
             self.loaded_chunks[4] = None

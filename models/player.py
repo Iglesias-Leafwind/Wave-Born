@@ -7,6 +7,7 @@ class Player:
     def __init__(self, x, y):
         self.direction = None
         self.dead = False
+        self.won = False
         self.pos = (x, y)
 
     def controls(self, left, right, jump):
