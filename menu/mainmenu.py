@@ -28,7 +28,7 @@ class MainMenu(pygame_menu.Menu):
         self._game_over = False
         self.during_game = False
         self.show = False
-        self.difficulty = 1
+        self.difficulty = 0
         self.volume_ = 5
         self.exit = False
         self.config_menu = ConfigMenu()

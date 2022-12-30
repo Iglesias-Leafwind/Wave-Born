@@ -37,7 +37,7 @@ if __name__ == "__main__":
 
         all_sprites = sprite.Group()
 
-        world.generateWorld(menu.difficulty, 2)
+        world.generateWorld(menu.difficulty, menu.difficulty+1)
         world.startWorld()
 
         # loading the images
@@ -55,7 +55,7 @@ if __name__ == "__main__":
                             attack_prob=0.05)
         turtle = TurtleLike(width=WIDTH, height=HEIGHT, start_width=100, stop_width=WIDTH, stop_height=460,
                             attack_prob=0.01)
-        whale = Whale(width=WIDTH, height=HEIGHT, stop_width=WIDTH, stop_height=HEIGHT, attack_prob=1)
+        whale = Whale(width=WIDTH, height=HEIGHT, stop_width=WIDTH, stop_height=HEIGHT, attack_prob=0.1)
         
         #initialize sprite objects
         bird_sprite = BirdLikeSprite([], WIDTH, HEIGHT, SCALE)
@@ -80,7 +80,6 @@ if __name__ == "__main__":
 
         mask = pygame.Surface((WIDTH, HEIGHT))
         mask.set_colorkey((0, 0, 255))
-        # mask.fill(0)
 
         lastKey = None
         waves = Waves()
@@ -91,7 +90,7 @@ if __name__ == "__main__":
         for chunk in world.loaded_chunks:
             if chunk:
                 all_sprites.add(chunk)
-
+        
         while 1:
             #initial arguments
             camera_move = True
@@ -212,7 +211,7 @@ if __name__ == "__main__":
                 
                 #render
                 # create cover surface
-                #mask.fill(0)
+                mask.fill(0)
 
                 all_sprites.update()
                 all_sprites.draw(screen)

@@ -15,7 +15,7 @@ class Block:
 
 
 class Chunk:
-    def __init__(self, xpos, blocks, pre_requisits, post_requisits, tunnel=False, end=False,SCALE=32):
+    def __init__(self, xpos, blocks, pre_requisits, post_requisits, tunnel=False, end=False):
         self.x = xpos
         self.blocks = blocks
         for block in self.blocks:
@@ -24,9 +24,10 @@ class Chunk:
         self.tunnel = tunnel
         self.pre_requisits = pre_requisits
         self.post_requisits = post_requisits
-        if(end):
-            self.end_sprite = EndSprite(SCALE)
-    
+        
+    def end_chunk(self, SCALE=32):
+        self.end_sprite = EndSprite(SCALE)
+        
     @staticmethod
     def load_chunk(xpos,json_file_path,end=False):
                 
