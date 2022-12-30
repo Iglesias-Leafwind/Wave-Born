@@ -111,20 +111,18 @@ class Monster:
     def spawn(self):
         if not Monster.USER_POS:
             self.pos = [
-                random.randrange(self.start_width, self.stop_width),
+                random.randrange(self.stop_width-16*15, self.stop_width),
                 random.randrange(self.start_height, self.stop_height),
             ]
             return self.pos
 
         while True:
             self.pos = [
-                random.randrange(self.start_width, self.stop_width),
+                random.randrange(self.stop_width-16*8, self.stop_width),
                 random.randrange(self.start_height, self.stop_height),
             ]
-            if self.x >= Monster.USER_POS[0]+16*4 + Monster.USER_WIDTH_OFFSET or self.x <= Monster.USER_POS[
-                0]-16*4 - Monster.USER_WIDTH_OFFSET \
-                    or self.y <= Monster.USER_POS[1] + Monster.USER_HEIGHT_OFFSET or self.y >= Monster.USER_POS[
-                1] - Monster.USER_HEIGHT_OFFSET:
+            if self.x >= Monster.USER_POS[0] + Monster.USER_WIDTH_OFFSET or self.x <= Monster.USER_POS[
+                0] - Monster.USER_WIDTH_OFFSET:
 
                 if self.check_inside_walls():
                     continue
@@ -304,8 +302,14 @@ class GroundMonster(Monster):
 
     def spawn(self):
         self.pos = [super(GroundMonster, self).spawn()[0], self.stop_height]
-        return self.pos
-
+        offset = 0
+        while True:
+            if self.check_inside_walls():
+                self.pos = [self.pos[0], self.stop_height+offset]
+                offset -= 16
+                continue
+            return self.pos
+        
     def jump(self, **kwargs):
         old_pos = self.pos
         if self.jump_count < self.jump_limit:
