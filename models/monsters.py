@@ -438,7 +438,6 @@ class Whale(Monster):
         event = None
         if self.out_of_world():
             event = Event.DEAD
-            print("?")
         elif self.fsm.current == Attack and time.time() - self.attack_info['time'] >= self.attack_interval:
             event = Event.MOVE
             self.attacking = False
@@ -459,12 +458,12 @@ class Whale(Monster):
         return self.pos
 
     def clone(self) -> Monster:
-        return Whale(self.width, self.height, start_width=0, stop_width=0, start_height=0,
-                     stop_height=0,
-                     attack_interval=5,
-                     jump_limit=7,
-                     jump_dist_x=7,
-                     jump_dist_y=1, attack_prob=0.01)
+        return Whale(self.width, self.height, self.start_width, self.stop_width, self.start_height,
+                     self.stop_height,
+                     self.attack_interval,
+                     self.jump_limit,
+                     self.jump_dist_x,
+                     self.jump_dist_y, self.attack_prob)
 
 
 class Spawner:
