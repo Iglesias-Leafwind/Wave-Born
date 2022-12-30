@@ -167,8 +167,8 @@ class PlayerSprite(pygame.sprite.Sprite):
             self.land_sound.play()
             self.jump_count = 0
             wave = Wave([self.rect.x + self.SCALE / 2, self.rect.y + self.SCALE],
-                                random.randint(2, 4), 144,
-                                [0, 0.2])
+                                random.randint(3, 5), 144,
+                                [0, 0.3])
             Waves.get_or_create().add_wave(wave)
         else:
             self.rect.y += 1
@@ -212,8 +212,8 @@ class PlayerSprite(pygame.sprite.Sprite):
                 if self.jump_count < self.jump_limit and not self.falling and self.jump_again:
                     self._start_jump()
                     wave = Wave([self.rect.x + self.SCALE / 2, self.rect.y + self.SCALE],
-                                random.randint(2, 4), 144,
-                                [0, 0.2])
+                                random.randint(4, 6), 144,
+                                [0, 0.3])
                     Waves.get_or_create().add_wave(wave)
                 self.running = False
             else:
@@ -222,7 +222,7 @@ class PlayerSprite(pygame.sprite.Sprite):
             if (self.running and not self.falling and not self.jumping):
                 if random.randint(0, 20) == 0:
                     wave = Wave([self.rect.x + self.SCALE / 2, self.rect.y + self.SCALE],
-                                random.randint(4, 8), 144,
+                                random.randint(6, 10), 144,
                                 [0, 0.4])
                     Waves.get_or_create().add_wave(wave)
 
