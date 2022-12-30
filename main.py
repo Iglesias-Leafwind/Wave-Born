@@ -10,6 +10,7 @@ from menu.mainmenu import MainMenu
 from sprites.background_sprite import BackgroundSprite
 from sprites.monster_sprites import SpiderLikeSprite, BirdLikeSprite, TurtleLikeSprite, WhaleSprite
 from sprites.player_sprite import PlayerSprite
+from models.sound import Sound as sd
 
 if __name__ == "__main__":
     WIDTH = 1024
@@ -90,7 +91,8 @@ if __name__ == "__main__":
         for chunk in world.loaded_chunks:
             if chunk:
                 all_sprites.add(chunk)
-        
+
+        new_game = False
         while 1:
             #initial arguments
             camera_move = True
@@ -112,6 +114,9 @@ if __name__ == "__main__":
 
             if menu.exit:
                 pygame.quit()
+                break
+            elif new_game:
+                sd.stop_all_sounds()
                 break
 
             player.controls(menu.left_key, menu.right_key, menu.jump_key)
@@ -136,6 +141,8 @@ if __name__ == "__main__":
 
             if menu and menu.show:
                 menu.mainloop(screen)
+                new_game = menu.new_game
+
             else:
                 #update game
                 
@@ -199,11 +206,13 @@ if __name__ == "__main__":
                     #instead of game over -> game win
                     menu.game_over(True)
                     menu.mainloop(screen)
+                    sd.stop_all_sounds()
                     break
                 
                 if player.dead or world.timeout():
                     menu.game_over(False)
                     menu.mainloop(screen)
+                    sd.stop_all_sounds()
                     break
                 
                 #render

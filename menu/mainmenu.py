@@ -27,6 +27,7 @@ class MainMenu(pygame_menu.Menu):
 
         self._game_over = False
         self.during_game = False
+        self.new_game = True
         self.show = False
         self.difficulty = 0
         self.volume_ = 5
@@ -35,6 +36,7 @@ class MainMenu(pygame_menu.Menu):
         self.pause_menu = PauseMenu()
 
     def start_game(self):
+        self.new_game = not self.new_game
         self._game_over = False
         self.during_game = True
         self.show = False
@@ -93,6 +95,7 @@ class MainMenu(pygame_menu.Menu):
         if self.pause_menu.resume_game:
             self.disable()
         else:
+            self.new_game = False
             self.show = True
             self.enable()
 
