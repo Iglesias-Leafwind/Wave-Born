@@ -6,7 +6,7 @@ from models.monsters import Monster, BirdLike, Spawner, SpiderLike, TurtleLike, 
 from models.player import Player
 from models.wave import Waves
 from models.world import World
-from menu.mainmenu import MainMenu
+from menu.menus import MainMenu
 from sprites.background_sprite import BackgroundSprite
 from sprites.monster_sprites import SpiderLikeSprite, BirdLikeSprite, TurtleLikeSprite, WhaleSprite
 from sprites.player_sprite import PlayerSprite

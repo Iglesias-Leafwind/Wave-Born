@@ -3,12 +3,12 @@ import time
 
 import pygame
 
-from models.fsm import Transition, Move, Attack, Jump, Fail, Dead, Event, Dying, FSM, MoveInAir
+from models.fsm import Transition, Move, Attack, Jump, Fall, Dead, Event, Dying, FSM, MoveInAir
 from models.player import Player
 from models.wave import Wave, Waves
 from models.world import World
 
-STATES = [Move, Attack, Jump, Fail, Dead]
+STATES = [Move, Attack, Jump, Fall, Dead]
 
 
 class Monster:
@@ -241,21 +241,21 @@ class GroundMonster(Monster):
     TRANSITIONS = {
         Event.ATTACK: [Transition(Move, Attack)],
         Event.JUMP: [Transition(Attack, Jump)],
-        Event.FAIL: [Transition(Jump, Fail), Transition(MoveInAir, Fail)],
-        Event.MOVE: [Transition(Fail, Move)],
+        Event.FALL: [Transition(Jump, Fall), Transition(MoveInAir, Fall)],
+        Event.MOVE: [Transition(Fall, Move)],
         Event.MOVE_IN_AIR: [Transition(Move, MoveInAir)],
         Event.DYING: [
             Transition(Move, Dying),
             Transition(Attack, Dying),
             Transition(Jump, Dying),
-            Transition(Fail, Dying),
+            Transition(Fall, Dying),
         ],
         Event.DEAD: [
             Transition(Dying, Dead),
             Transition(Move, Dead),
             Transition(Attack, Dead),
             Transition(Jump, Dead),
-            Transition(Fail, Dead), ]
+            Transition(Fall, Dead), ]
     }
 
     def __init__(self, width, height, start_width=0, stop_width=0, start_height=0,
@@ -277,8 +277,8 @@ class GroundMonster(Monster):
         elif self.out_of_world():
             event = Event.DEAD
         elif self.fsm.current == Jump and self.falling:
-            event = Event.FAIL
-        elif self.fsm.current == Fail and not self.falling:
+            event = Event.FALL
+        elif self.fsm.current == Fall and not self.falling:
             event = Event.MOVE
             self.fail_speed = 1
         elif self.fsm.current == Attack:
@@ -294,7 +294,7 @@ class GroundMonster(Monster):
                     self.direction = 1
                 event = Event.ATTACK
         elif self.fsm.current == MoveInAir:
-            event = Event.FAIL
+            event = Event.FALL
             self.fail_speed = 2
 
         self.fsm.update(event, self)

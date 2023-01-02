@@ -59,7 +59,7 @@ class Event(Enum):
     MOVE_IN_AIR = 2,
     ATTACK = 3,
     JUMP = 4,
-    FAIL = 5,
+    FALL = 5,
     DYING = 6,
     DEAD = 7
 
@@ -103,7 +103,7 @@ class Jump(State):
         monster.jump()
 
 
-class Fail(State):
+class Fall(State):
     def __init__(self):
         super().__init__(self.__class__.__name__)
 
