@@ -10,7 +10,7 @@ class MainMenu(pygame_menu.Menu):
     def __init__(self):
         super(MainMenu, self).__init__(height=300, width=400, title='Main menu', theme=pygame_menu.themes.THEME_BLUE)
         self.add.selector('Difficulty :',
-                          [('Easy', 0), ('Normal', 1), ('Hard', 2)],
+                          [('Easy', 2), ('Normal', 1), ('Hard', 0)],
                           onchange=self.set_difficulty)
         self.play = self.add.button('Start Game', self.start_game)
 
