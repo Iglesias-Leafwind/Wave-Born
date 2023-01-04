@@ -3,7 +3,7 @@ from pygame.sprite import Sprite
 
 from sprites.spritesheet import SpriteSheet
 
-
+#this is the endsprite of the game that will be present in the last chunk
 class EndSprite(pygame.sprite.Sprite):
     def __init__(self, SCALE):
         Sprite.__init__(self)
@@ -13,12 +13,14 @@ class EndSprite(pygame.sprite.Sprite):
                                             (SCALE * 5, SCALE * 5 + SCALE / 5), )
 
         self.rect = self.image.get_rect()
-
+    #this will move the end sprite given a velocity in pixels
     def move(self, velocity):
         self.rect.x += velocity[0]
         self.rect.y += velocity[1]
 
-
+#this is a blocksprite but in fact it should be called chunksprite
+#because this sprite represents a chunk it has a chunk and the blocks textures
+#and will draw every block that this chunk has as a single sprite
 class BlockSprite(pygame.sprite.Sprite):
     def __init__(self, chunk, blocks_x, blocks_y, SCALE):
         Sprite.__init__(self)
@@ -45,7 +47,7 @@ class BlockSprite(pygame.sprite.Sprite):
             self.image.blit(image, (rects[idx].x - self.rect.left,
                                     rects[idx].y - self.rect.top))
         self.mask = pygame.mask.from_surface(self.image)
-
+    #this will move the sprite in velocity pixels
     def move(self, velocity):
         self.rect.move_ip(velocity)
         try:
