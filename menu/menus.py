@@ -94,6 +94,7 @@ class MainMenu(pygame_menu.Menu):
 
         if self.pause_menu.resume_game:
             self.disable()
+            self.pause_menu.resume_game =False
         else:
             self.new_game = False
             self.show = True
