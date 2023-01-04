@@ -3,7 +3,9 @@ from pygame.mixer import *
 
 
 class Sound(mixer.Sound):
-    _all_sounds = set()
+    # class that encapsulates mixer.Sound
+
+    _all_sounds = set() # all created sounds
     _ID = 0
 
     def __init__(self, file):
@@ -12,18 +14,21 @@ class Sound(mixer.Sound):
         Sound._all_sounds.add(self)
 
     def play(self, **kwargs):
+        # when starts
         self.stop()
         self.set_volume(music.get_volume())
         super(Sound, self).play(**kwargs)
 
     @classmethod
     def stop_all_sounds(cls):
+        # stop all sounds when the game finished
         for s in Sound._all_sounds:
             s.stop()
         Sound._all_sounds.clear()
 
     @classmethod
     def pop_sound(cls, id):
+        # when a monster dies remove its sound
         Sound._all_sounds.remove(id)
 
     def __hash__(self):

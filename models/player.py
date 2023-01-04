@@ -11,10 +11,12 @@ class Player:
         self.pos = (x, y)
 
     def controls(self, left, right, jump):
+        # store control keys
         self.control_keys = {left: Left, right: Right, jump: Up}
         self.control_keys_name = {'left': left, 'right': right, 'jump': jump}
 
     def command(self, control):
+        # move the player according with the control
         if control in self.control_keys.keys():
             cmd = self.control_keys[control]()
             cmd.execute(self)
