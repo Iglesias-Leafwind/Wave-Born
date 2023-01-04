@@ -61,9 +61,11 @@ class Monster:
         self.sprite = kwargs['sprite']
 
     def want_attack(self):
+        # verify if the monster wants to attack the player
         return random.random() <= self.attack_prob
 
     def want_cry(self):
+        # verify if the monster wants to cry
         return random.random() <= self.cry_prob
 
     @classmethod
@@ -78,6 +80,7 @@ class Monster:
         return id
 
     def jump(self):
+        # reduces monster's y until it reaches the maximum height
         old_pos = self.pos
         if self.jump_count < self.jump_limit:
             self.pos = old_pos[0], old_pos[1] - self.jump_dist_y
@@ -86,7 +89,8 @@ class Monster:
             self.jumping = False
             self.falling = True
 
-    def fail(self):
+    def fall(self):
+        # increments monster's y until it steps on a block
         old_pos = self.pos
         if self.jump_count > 0:
             self.pos = old_pos[0], old_pos[1] + self.jump_dist_y
@@ -95,20 +99,24 @@ class Monster:
             self.falling = False
 
     def move(self):
+        # updates monster's x according with its direction
         old_pos = self.pos
         self.turn_dirc_if_hit_wall()
         new_pos = old_pos[0] + self.direction, old_pos[1]
         self.pos = new_pos
 
     def attack(self):
+        # changes the flag attacking to True if the monster is not dying or already dead
         if not self.dying and not self.is_dead:
             self.attacking = True
 
     def dead(self):
+        # monster starts dying
         self.dying = True
         self.attacking = False
 
     def spawn(self):
+        # clone method
         if not Monster.USER_POS:
             self.pos = [
                 random.randrange(self.stop_width - 16 * 15, self.stop_width),
@@ -129,9 +137,12 @@ class Monster:
                 return self.pos
 
     def out_of_world(self):
+        # check if the monster is out of the world
         return self.x < 0 or self.x > self.width or self.y > self.height or self.y < 0
 
     def turn_dirc_if_hit_wall(self):
+        # Invert the monster's direction if it hits a wall
+
         blocks = World.get_or_create().get_blocks()
         for b in blocks:
             self.sprite.rect.x += self.offset * self.direction
@@ -143,12 +154,16 @@ class Monster:
             self.sprite.rect.x -= self.offset * self.direction
 
     def check_inside_walls(self):
+        # check if the monster is inside of the walls
+
         blocks = World.get_or_create().get_blocks()
         for b in blocks:
             if abs(self.x - b.rect.x) < 32 and abs(self.y - b.rect.y) < 32:
                 return True
 
     def step_on_wall(self):
+        # check if the monster steps on a wall
+
         blocks = World.get_or_create().get_blocks()
         for b in blocks:
             self.sprite.rect.y += 5
@@ -187,6 +202,7 @@ class Monster:
 
 
 class Feather:
+    # used by BirdLike to attack the player
     _ID = 0
 
     def __init__(self, pos, direction):
@@ -215,6 +231,7 @@ class BirdLike(Monster):
     def update(self, **kwargs):
         super(BirdLike, self).update(**kwargs)
 
+        # update the monster's state
         event = None
         player = Player.SPRITE
         if player.stepped_on(self.sprite.rect) or self.out_of_world():
@@ -232,12 +249,15 @@ class BirdLike(Monster):
                         self.jump_dist_x, self.jump_dist_y, self.attack_prob, self.cry_prob)
 
     def get_center(self, width, height):
+        # the center of the monster will be used as "launch point" of Feather
         if self.direction == 1:
             return self.pos[0] + width // 2, self.pos[1] + height // 2
         return self.pos[0], self.pos[1] + height // 2
 
 
 class GroundMonster(Monster):
+    # class for monsters that walk on the blocks
+
     TRANSITIONS = {
         Event.ATTACK: [Transition(Move, Attack)],
         Event.JUMP: [Transition(Attack, Jump)],
@@ -311,11 +331,12 @@ class GroundMonster(Monster):
 
     def jump(self, **kwargs):
         old_pos = self.pos
+
+        # jump until hits a wall
         if self.jump_count < self.jump_limit:
             if self.turn_dirc_if_hit_wall():
                 self.pos = old_pos[0], \
                            old_pos[1] - self.jump_dist_y
-                print(f"{self.id} {self.pos}")
             else:
                 self.pos = old_pos[0] + self.jump_dist_x * self.direction, \
                            old_pos[1] - self.jump_dist_y
@@ -328,8 +349,10 @@ class GroundMonster(Monster):
         self.jumping = False
         self.falling = True
 
-    def fail(self, **kwargs):
+    def fall(self, **kwargs):
         old_pos = self.pos
+
+        # fall until hits a wall
         if self.attacking and self.jump_count > 0:
             self._fail(old_pos)
             self.jump_count -= 1

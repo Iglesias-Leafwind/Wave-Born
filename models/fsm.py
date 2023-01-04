@@ -109,7 +109,7 @@ class Fall(State):
 
     @classmethod
     def update(cls, monster):
-        monster.fail()
+        monster.fall()
 
 
 class Dying(State):
