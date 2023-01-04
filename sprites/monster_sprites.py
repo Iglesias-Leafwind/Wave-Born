@@ -14,12 +14,14 @@ from sprites.utils import load_images, invert_images
 
 
 class MonsterSprite(pygame.sprite.Sprite):
+    # main class for all monsters
+
     _singleton = None
 
     def __init__(self, image_update_per_frames=0, pos_update_per_frames=0):
         Sprite.__init__(self)
-        self.monsters: list
-        self.rects: dict
+        self.monsters: list  # list of monsters
+        self.rects: dict  # list of rects of the current image of each monster
         self.left_move_images: list
         self.right_move_images: list
         self.img_indexes: dict
@@ -27,15 +29,14 @@ class MonsterSprite(pygame.sprite.Sprite):
         self.right_dead_images: list
         self.left_attack_images: list
         self.right_attack_images: list
-        self.image_update_per_frames = image_update_per_frames
-        self.pos_update_per_frames = pos_update_per_frames
+        self.image_update_per_frames = image_update_per_frames  # update monsters' image once per given frames
+        self.pos_update_per_frames = pos_update_per_frames  # update monsters' state per given frames
         self.image_update_count = 0
         self.pos_update_count = 0
 
-    def _init_images(self):
-        raise NotImplemented
-
     def change_monster_state(self, monster):
+        # reset image index to 0
+        # used when the monster's state changes
         self.img_indexes[monster.id] = 0
 
     @classmethod
@@ -45,20 +46,24 @@ class MonsterSprite(pygame.sprite.Sprite):
         return cls(**kwargs)
 
     def _next_image(self, monster):
+        # get next image to be displayed
         id = monster.id
         indexes = self.img_indexes
 
         if monster.dying:
+            # if monster is dying then uses dead images
             if monster.direction == 1:
                 images = self.right_dead_images
             else:
                 images = self.left_dead_images
         elif monster.attacking:
+            # if monster is attacking then uses attack images
             if monster.direction == 1:
                 images = self.right_attack_images
             else:
                 images = self.left_attack_images
         else:
+            # if monster is moving then uses move images
             if monster.direction == 1:
                 images = self.right_move_images
             else:
@@ -73,17 +78,20 @@ class MonsterSprite(pygame.sprite.Sprite):
         return next_image
 
     def _remove_monster(self, monster):
+        # remove a monster from the world
         self.monsters.remove(monster)
         id = monster.id
         if id in self.img_indexes:
             self.img_indexes.pop(id)
 
     def _add_monster(self, monster):
+        # add a monster to the world
         self.monsters.append(monster)
         id = monster.id
         self.img_indexes[id] = 0
 
     def update(self, **kwargs):
+        # call update method of each monster
         if self.pos_update_count >= self.pos_update_per_frames:
             for monster in self.monsters:
                 self.image, self.rect = self.rects[monster.id]
@@ -95,6 +103,7 @@ class MonsterSprite(pygame.sprite.Sprite):
             self.pos_update_count += 1
 
     def draw(self, mask):
+        # draw monsters
         self.image_update_count += 1
         for monster in self.monsters:
             image = self._next_image(monster)
@@ -135,13 +144,18 @@ class FeatherSprite(pygame.sprite.Sprite):
             return FeatherSprite(**kwargs)
 
     def add_feather(self, bird_id, feather):
+        # when a bird starts attacking will create a new feather
+        # store the new feather
         self.feathers[bird_id] = feather
         self.rects[feather.id] = self.rect
 
     def feather_flying(self, bird_id):
+        # check if the feather is out of the world
+        # each bird can has only one feather at the time
         return bird_id in self.feathers
 
     def draw(self, mask):
+        # draw the feathers
         self.mask = pygame.mask.from_surface(self.image)
         monster_maskSurf = self.mask.to_surface()
         monster_maskSurf.set_colorkey((0, 0, 0, 0))
@@ -160,6 +174,7 @@ class FeatherSprite(pygame.sprite.Sprite):
         return self.left_image
 
     def _has_collision_or_out_of_world(self, feather, WIDTH, HEIGHT):
+        # check if the feather hits the player ou is out of the world
         player = PlayerSprite.get_or_create()
         if player.has_collision_with(self.rects[feather.id]):
             player.dead()
@@ -168,6 +183,7 @@ class FeatherSprite(pygame.sprite.Sprite):
             return True
 
     def update(self):
+        # update feathers' position
         to_be_removed = []
         for bird_id, feather in self.feathers.items():
             old_pos = feather.pos
@@ -181,17 +197,21 @@ class FeatherSprite(pygame.sprite.Sprite):
                 rect.y = feather.pos[1]
                 self.rects[feather.id] = rect
 
+        # remove feathers that are out of the world
         for i in to_be_removed:
             del self.rects[self.feathers[i].id]
             del self.feathers[i]
 
     def update_camera_movement(self, movement):
+        # update feathers' position when the camera moves
         for bird_id, feather in self.feathers.items():
             old_pos = feather.pos
             feather.pos = old_pos[0] - movement, old_pos[1]
 
 
 class BirdLikeSprite(MonsterSprite):
+    # class that display BirdLike monsters on the screen
+
     def __init__(self, birds, WIDTH, HEIGHT, SCALE):
         MonsterSprite.__init__(self, 16, 10)
 
@@ -230,7 +250,10 @@ class BirdLikeSprite(MonsterSprite):
         self.img_indexes = {m.id: 0 for m in self.monsters}
 
     def _remove_monster(self, bird):
+        # remove the bird
         super(BirdLikeSprite, self)._remove_monster(bird)
+
+        # stop its crying
         if bird.id in self.cry_count:
             cry_sound = self.cry_count[bird.id]['sound']
             cry_sound.stop()
@@ -238,14 +261,14 @@ class BirdLikeSprite(MonsterSprite):
             self.cry_count.pop(bird.id)
 
     def _add_monster(self, bird):
-        super(BirdLikeSprite,self)._add_monster(bird)
-        id = bird.id
-        self.rects[id] = (self.image, self.image.get_rect())
-        self.img_indexes[id] = 0
+        super(BirdLikeSprite, self)._add_monster(bird)
+        # update the given bird's image rect
+        self.rects[bird.id] = (self.image, self.image.get_rect())
 
     def update(self, **kwargs):
         super(BirdLikeSprite, self).update(**kwargs)
 
+        # check birds' state and display corresponding images or sounds
         for bird in self.monsters:
             if bird.is_dead:
                 self._remove_monster(bird)
@@ -302,6 +325,7 @@ class BirdLikeSprite(MonsterSprite):
 
 
 class GroundMonsterSprite(MonsterSprite):
+    # class that display all GroundMonster
     def update(self, **kwargs):
         super(GroundMonsterSprite, self).update(**kwargs)
         for monster in self.monsters:
@@ -327,7 +351,7 @@ class SpiderLikeSprite(GroundMonsterSprite):
         self._init_images()
         self.image = pygame.Surface(self.left_move_images[0].get_size())
         self.rect = self.image.get_rect()
-        
+
         self.rects = {m.id: (self.image, self.image.get_rect()) for m in self.monsters}
         self.mask = pygame.mask.from_surface(self.image)
         SpiderLikeSprite._singleton = self
@@ -365,7 +389,7 @@ class SpiderLikeSprite(GroundMonsterSprite):
                 self._remove_monster(spider)
 
     def _add_monster(self, spider):
-        super(SpiderLikeSprite,self)._add_monster(spider)
+        super(SpiderLikeSprite, self)._add_monster(spider)
         id = spider.id
         self.rects[id] = (self.image, self.image.get_rect())
         self.img_indexes[id] = 0
@@ -428,13 +452,13 @@ class TurtleLikeSprite(GroundMonsterSprite):
             cry_sound.stop()
             Sound.pop_sound(cry_sound)
             self.sound_count.pop(turtle.id)
-            
+
     def _add_monster(self, turtle):
-        super(TurtleLikeSprite,self)._add_monster(turtle)
+        super(TurtleLikeSprite, self)._add_monster(turtle)
         id = turtle.id
         self.rects[id] = (self.image, self.image.get_rect())
         self.img_indexes[id] = 0
-        
+
     def update(self, **kwargs):
         super(TurtleLikeSprite, self).update(**kwargs)
         for turtle in self.monsters:
@@ -474,12 +498,11 @@ class TurtleLikeSprite(GroundMonsterSprite):
                                                                 [0, turtle_cry['wait'] / 5]))
                             turtle_cry['finished'] = 0
 
-            #if turtle.dying or turtle.attacking:
+            # if turtle.dying or turtle.attacking:
             #    self.sound_count[turtle.id]['step'].stop()
-            #else:
+            # else:
             #    self.sound_count[turtle.id]['step'].play(loops=-1)
 
-        
     def update_camera_movement(self, movement):
         for turtle in self.monsters:
             turtle.x -= movement
@@ -533,14 +556,13 @@ class WhaleSprite(MonsterSprite):
             elif not whale.attacking:
                 attack_count['during_attack'] = False
 
-
     def _add_monster(self, whale):
-        super(WhaleSprite,self)._add_monster(whale)
+        super(WhaleSprite, self)._add_monster(whale)
         id = whale.id
         self.rects[id] = (self.image, self.image.get_rect())
         self.img_indexes[id] = 0
         self.attack_count[id] = {'sound': Sound(self.cry_sound_path), 'during_attack': False}
-        
+
     def update_camera_movement(self, movement):
         for whale in self.monsters:
             whale.x -= movement
